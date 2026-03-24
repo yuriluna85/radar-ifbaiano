@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar IF Baiano - Monitor DICOM</title>
+    <title>Radar IF Baiano - DICOM</title>
     <style>
         :root { --verde: #32a041; --vermelho: #c8191e; --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; }
         
         header { text-align: center; margin-bottom: 10px; }
-        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
+        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; }
         
-        /* Barra de Progresso DICOM */
         .progress-container { width: 100%; height: 6px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
         
-        /* Console de Status em Tempo Real */
         #status-console { 
             font-family: 'Courier New', monospace; font-size: 0.7rem; color: #10b981; 
             background: #000; padding: 12px; border-radius: 8px; 
@@ -23,60 +21,44 @@
             min-height: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* Filtros por Unidade */
         .filters { max-width: 950px; margin: 15px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
         .btn-filter { 
             background: #334155; border: none; color: #94a3b8; padding: 6px 12px; 
             border-radius: 15px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: 0.3s;
         }
-        .btn-filter.active, .btn-filter:hover { background: var(--verde); color: #fff; transform: translateY(-2px); }
+        .btn-filter.active, .btn-filter:hover { background: var(--verde); color: #fff; }
 
         #news-container { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 
-        /* Estilo Card-Stack */
         .card {
             display: flex; background: var(--card); border-radius: 12px; overflow: hidden;
             text-decoration: none; color: inherit; height: 130px; border-left: 6px solid var(--verde);
-            margin-bottom: -15px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: -15px; transition: 0.4s;
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; animation: fadeIn 0.6s ease forwards;
         }
         .card:hover { transform: translateY(-10px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
 
         .img-box { position: relative; width: 240px; min-width: 240px; height: 100%; background: #000; }
         .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.85; }
-        
-        .badge { 
-            position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; 
-            font-size: 0.65rem; font-weight: 900; padding: 5px 12px; border-bottom-right-radius: 12px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3); text-transform: uppercase;
-        }
+        .badge { position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; font-size: 0.65rem; font-weight: 900; padding: 5px 12px; border-bottom-right-radius: 12px; text-transform: uppercase; }
 
-        /* Animação Pulsação (<1h) */
-        .pulse {
-            position: absolute; top: 12px; right: 12px; width: 12px; height: 12px;
-            background: var(--vermelho); border-radius: 50%; z-index: 20;
-            box-shadow: 0 0 0 rgba(200, 25, 30, 0.4); animation: pulseEffect 1.5s infinite;
-        }
-        @keyframes pulseEffect {
-            0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); }
-        }
+        .pulse { position: absolute; top: 12px; right: 12px; width: 12px; height: 12px; background: var(--vermelho); border-radius: 50%; z-index: 20; animation: pulseEffect 1.5s infinite; }
+        @keyframes pulseEffect { 0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); } }
 
         .info { padding: 15px 25px; display: flex; flex-direction: column; justify-content: center; }
         .title { margin: 0; font-size: 1rem; line-height: 1.3; font-weight: 600; color: #fff; }
-        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 8px; font-weight: bold; }
+        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 8px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; } }
         @media (max-width: 700px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 160px; } }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>📡 Radar IF Baiano - DICOM</h1>
+    <h1>📡 Radar IF Baiano</h1>
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Sistema pronto. Aguardando sincronização...</div>
+    <div id="status-console">> Sistema pronto. Sincronizando via Google Tunnel...</div>
 </header>
 
 <div class="filters" id="filters">
@@ -84,7 +66,7 @@
 </div>
 
 <div id="news-container">
-    <p style="text-align:center; padding: 50px; opacity: 0.5;">Iniciando varredura pelos 14 Campi...</p>
+    <p style="text-align:center; padding: 50px; opacity: 0.5;">Aguardando retorno dos Campi...</p>
 </div>
 
 <script>
@@ -123,39 +105,27 @@
         if (timer <= 0) { timer = 120; giroCompleto(); }
     }, 1000);
 
-    // Função que tenta rodar em Proxies alternativos se um falhar
-    async function fetchWithRetry(targetUrl) {
-        const proxies = [
-            `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&t=${Date.now()}`,
-            `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`,
-            `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`
-        ];
-
-        for (const proxyUrl of proxies) {
-            try {
-                const response = await fetch(proxyUrl);
-                if (!response.ok) continue;
-                
-                const data = await response.json();
-                // Normaliza o conteúdo se vier do AllOrigins ou direto do proxy
-                const rawXml = data.contents || (typeof data === 'string' ? data : null);
-                if (rawXml) return rawXml;
-            } catch (e) { continue; }
-        }
-        return null;
+    async function fetchViaGoogle(targetUrl) {
+        // O "segredo": Proxy do Google Gadgets
+        const proxyUrl = `https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=3600&url=${encodeURIComponent(targetUrl)}`;
+        try {
+            const response = await fetch(proxyUrl);
+            if (!response.ok) return null;
+            return await response.text();
+        } catch (e) { return null; }
     }
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Iniciando varredura profunda...";
+        consoleLog.innerText = "> Iniciando Varredura via Google Cloud...";
         let tempBatch = [];
 
         for (const unidade of UNIDADES) {
-            consoleLog.innerText = `> Sincronizando: ${unidade.id}...`;
+            consoleLog.innerText = `> Lendo: ${unidade.id}...`;
             
-            // Pausa de 500ms para evitar bloqueio por "excesso de velocidade"
-            await new Promise(r => setTimeout(r, 500));
+            // Pausa estratégica de 300ms
+            await new Promise(r => setTimeout(r, 300));
 
-            const xmlContent = await fetchWithRetry(unidade.url);
+            const xmlContent = await fetchViaGoogle(unidade.url);
             
             if (xmlContent) {
                 try {
@@ -178,15 +148,15 @@
                         });
                         consoleLog.innerText = `> ${unidade.id}: OK.`;
                     }
-                } catch (e) { consoleLog.innerText = `> ${unidade.id}: Erro de Parse XML.`; }
+                } catch (e) { consoleLog.innerText = `> ${unidade.id}: Erro de XML.`; }
             } else {
-                consoleLog.innerText = `> ${unidade.id}: FALHA (Proxy bloqueado).`;
+                consoleLog.innerText = `> ${unidade.id}: Servidor ocupado.`;
             }
         }
 
         dataStore = tempBatch.sort((a, b) => b.date - a.date);
         render(dataStore);
-        consoleLog.innerText = `> Ciclo completo. ${dataStore.length}/14 unidades sincronizadas.`;
+        consoleLog.innerText = `> Sucesso! ${dataStore.length}/14 unidades sincronizadas.`;
     }
 
     function filterByCampus(id, btn) {
@@ -198,7 +168,7 @@
     function render(list) {
         const container = document.getElementById('news-container');
         if (list.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Nenhuma notícia pôde ser carregada. <br>Isso pode ser um bloqueio do Firewall Institucional.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>O Radar não conseguiu captar notícias agora. <br>Tentando novo giro em instantes...</p>";
             return;
         }
         container.innerHTML = list.map(n => `
