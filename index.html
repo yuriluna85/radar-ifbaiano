@@ -71,20 +71,21 @@
 
 <script>
     const UNIDADES = [
-        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/wp-json/wp/v2/posts" },
+        { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts" },
+        { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts" },
-        { id: "Mangabeira", url: "https://ifbaiano.edu.br/portal/campi/mangabeira/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Guanambi", url: "https://ifbaiano.edu.br/portal/campi/guanambi/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Itaberaba", url: "https://ifbaiano.edu.br/portal/campi/itaberaba/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Itapetinga", url: "https://ifbaiano.edu.br/portal/campi/itapetinga/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Santa Inês", url: "https://ifbaiano.edu.br/portal/campi/santa-ines/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Bonfim", url: "https://ifbaiano.edu.br/portal/campi/bonfim/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Serrinha", url: "https://ifbaiano.edu.br/portal/campi/serrinha/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Teixeira", url: "https://ifbaiano.edu.br/portal/campi/teixeira/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Uruçuca", url: "https://ifbaiano.edu.br/portal/campi/urucuca/?rest_route=/wp/v2/posts&per_page=1" },
-        { id: "Valença", url: "https://ifbaiano.edu.br/portal/campi/valenca/?rest_route=/wp/v2/posts&per_page=1" }
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts" },
+        { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts" },
+        { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts" },
+        { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts" },
+        { id: "Santa Inês", url: "https://www.ifbaiano.edu.br/unidades/santaines/wp-json/wp/v2/posts" },
+        { id: "Bonfim", url: "https://www.ifbaiano.edu.br/unidades/bonfim/wp-json/wp/v2/posts" },
+        { id: "Serrinha", url: "https://www.ifbaiano.edu.br/unidades/serrinha/wp-json/wp/v2/posts" },
+        { id: "Teixeira", url: "https://www.ifbaiano.edu.br/unidades/teixiera/wp-json/wp/v2/posts" },
+        { id: "Uruçuca", url: "https://www.ifbaiano.edu.br/unidades/urucuca/wp-json/wp/v2/posts" },
+        { id: "Valença", url: "https://www.ifbaiano.edu.br/unidades/valenca/wp-json/wp/v2/posts" }
+          { id: "Valença", url: "https://www.ifbaiano.edu.br/unidades/xique-xique/wp-json/wp/v2/posts" }
     ];
 
     let timer = 120;
