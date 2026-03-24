@@ -6,54 +6,44 @@
     <title>Radar IF Baiano - Monitor DICOM</title>
     <style>
         :root { --verde: #32a041; --vermelho: #c8191e; --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; overflow-x: hidden; }
         
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--verde); font-size: 1.7rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
+        header { text-align: center; margin-bottom: 15px; }
+        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
         
         /* Filtros */
-        .filter-wrap { max-width: 950px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+        .filter-wrap { max-width: 950px; margin: 15px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
         .btn-f { background: #334155; border: none; color: #94a3b8; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: 0.3s; }
         .btn-f.active, .btn-f:hover { background: var(--verde); color: #fff; }
 
         /* Progresso */
-        .progress { width: 100%; height: 6px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
+        .progress { width: 100%; height: 5px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
         #bar { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
-        #status { font-size: 0.7rem; color: #94a3b8; text-align: center; margin-top: 10px; font-weight: bold; }
+        #status-info { font-size: 0.7rem; color: #10b981; font-family: monospace; text-align: center; margin-top: 10px; height: 1.2em; }
 
-        #news-container { max-width: 850px; margin: 20px auto; display: flex; flex-direction: column; gap: 15px; }
+        #news-container { max-width: 850px; margin: 20px auto; display: flex; flex-direction: column; gap: 12px; min-height: 300px; }
 
-        /* Card Layout */
         .card {
             display: flex; background: var(--card); border-radius: 12px; overflow: hidden;
-            text-decoration: none; color: inherit; height: 130px; border-left: 6px solid var(--verde);
+            text-decoration: none; color: inherit; height: 125px; border-left: 6px solid var(--verde);
             margin-bottom: -15px; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; animation: slideIn 0.5s ease forwards;
         }
-        .card:hover { transform: translateY(-10px) scale(1.02); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
+        .card:hover { transform: translateY(-8px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
 
-        .img-box { position: relative; width: 240px; min-width: 240px; height: 100%; background: #000; }
+        .img-box { position: relative; width: 230px; min-width: 230px; height: 100%; background: #000; }
         .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.8; }
-        .badge { position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; font-size: 0.65rem; font-weight: 900; padding: 6px 12px; border-bottom-right-radius: 12px; }
+        .badge { position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-bottom-right-radius: 10px; }
 
-        /* Ponto Pulsante (<1h) */
-        .pulse {
-            position: absolute; top: 12px; right: 12px; width: 12px; height: 12px;
-            background: var(--vermelho); border-radius: 50%; z-index: 20;
-            box-shadow: 0 0 0 rgba(200, 25, 30, 0.4); animation: pulseAnim 1.5s infinite;
-        }
-        @keyframes pulseAnim {
-            0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); }
-        }
+        .pulse { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: var(--vermelho); border-radius: 50%; z-index: 20; animation: pulseAnim 1.5s infinite; }
+        @keyframes pulseAnim { 0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); } }
 
-        .info { padding: 15px 25px; display: flex; flex-direction: column; justify-content: center; }
-        .title { margin: 0; font-size: 1rem; line-height: 1.3; font-weight: 600; color: #fff; }
-        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 8px; }
+        .info { padding: 15px 20px; display: flex; flex-direction: column; justify-content: center; }
+        .title { margin: 0; font-size: 0.95rem; line-height: 1.3; font-weight: 600; color: #fff; }
+        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 6px; }
 
         @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; } }
-        @media (max-width: 650px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 150px; } }
+        @media (max-width: 600px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 150px; } }
     </style>
 </head>
 <body>
@@ -61,16 +51,14 @@
 <header>
     <h1>📡 Radar IF Baiano</h1>
     <div class="progress"><div id="bar"></div></div>
-    <p id="status">Sincronizando Giro pelos 14 Campi...</p>
+    <div id="status-info">> Iniciando varredura nos 14 campi...</div>
 </header>
 
-<div class="filter-wrap" id="filter-bar">
+<div class="filter-wrap" id="f-bar">
     <button class="btn-f active" onclick="filterNews('Todos', this)">Todos</button>
 </div>
 
-<div id="news-container">
-    <p style="text-align:center; padding: 40px; opacity: 0.5;">Aguardando sinal das unidades...</p>
-</div>
+<div id="news-container"></div>
 
 <script>
     const CAMPI = [
@@ -92,13 +80,14 @@
 
     let timer = 120;
     let dataCache = [];
+    const status = document.getElementById('status-info');
 
     // Botões
     CAMPI.forEach(c => {
         const b = document.createElement('button');
         b.className = 'btn-f'; b.innerText = c.id;
         b.onclick = (e) => filterNews(c.id, e.target);
-        document.getElementById('filter-bar').appendChild(b);
+        document.getElementById('f-bar').appendChild(b);
     });
 
     setInterval(() => {
@@ -108,14 +97,16 @@
     }, 1000);
 
     async function fetchAll() {
-        document.getElementById('status').innerText = "🔄 Sincronizando Giro pelos 14 Campi...";
+        status.innerText = "> Conectando aos 14 campi...";
         let temp = [];
 
-        const promises = CAMPI.map(async (campus) => {
+        // Técnica de Encadeamento de Busca
+        for (const campus of CAMPI) {
+            status.innerText = `> Sincronizando: ${campus.id}...`;
             try {
-                // Usando AllOrigins via fetch
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(campus.url)}&_t=${Date.now()}`);
-                const json = await res.json();
+                // Tentativa direta via Proxy AllOrigins com timestamp anti-cache
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(campus.url)}&_t=${Date.now()}`);
+                const json = await response.json();
                 
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(json.contents, "text/xml");
@@ -126,22 +117,21 @@
                     const desc = item.querySelector("description")?.textContent || "";
                     const imgMatch = desc.match(/src="([^"]+)"/);
 
-                    return {
+                    temp.push({
                         title: item.querySelector("title").textContent,
                         link: item.querySelector("link").textContent,
                         date: pubDate,
                         campus: campus.id,
                         img: imgMatch ? imgMatch[1] : `https://picsum.photos/seed/${campus.id}/400/225`,
                         hot: (Date.now() - pubDate.getTime()) < 3600000
-                    };
+                    });
                 }
-            } catch (e) { return null; }
-        });
+            } catch (e) { console.warn(`Falha no campus: ${campus.id}`); }
+        }
 
-        const results = await Promise.all(promises);
-        dataCache = results.filter(n => n !== null).sort((a, b) => b.date - a.date);
+        dataCache = temp.sort((a, b) => b.date - a.date);
         render(dataCache);
-        document.getElementById('status').innerText = "✅ Monitoramento Ativo (GitHub Cloud)";
+        status.innerText = dataCache.length > 0 ? `> Radar Online: ${dataCache.length} unidades conectadas.` : "> Erro: Sem resposta dos campi.";
     }
 
     function filterNews(id, btn) {
@@ -152,6 +142,10 @@
 
     function render(list) {
         const container = document.getElementById('news-container');
+        if (list.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Nenhuma notícia encontrada. Verifique se o portal do IF Baiano está acessível na sua rede.</p>";
+            return;
+        }
         container.innerHTML = list.map(n => `
             <a href="${n.link}" target="_blank" class="card">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
@@ -161,7 +155,7 @@
                 </div>
                 <div class="info">
                     <h2 class="title">${n.title}</h2>
-                    <div class="date">${n.date.toLocaleDateString()} às ${n.date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
+                    <div class="date">${n.date.toLocaleDateString('pt-BR')} às ${n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
                 </div>
             </a>`).join('');
     }
