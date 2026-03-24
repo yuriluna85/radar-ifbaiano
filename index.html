@@ -9,59 +9,86 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; }
         
         header { text-align: center; margin-bottom: 10px; }
-        h1 { color: var(--verde); font-size: 1.5rem; margin: 0; font-weight: 800; text-transform: uppercase; }
+        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
         
-        .progress-box { width: 100%; height: 5px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
-        #fill { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
-        #status-log { font-family: monospace; font-size: 0.65rem; color: #10b981; text-align: center; margin-top: 10px; height: 1.2em; }
+        /* Barra de Progresso DICOM */
+        .progress-container { width: 100%; height: 6px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
+        #bar-fill { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
+        
+        /* Console de Status em Tempo Real */
+        #status-console { 
+            font-family: 'Courier New', monospace; font-size: 0.7rem; color: #10b981; 
+            background: #000; padding: 12px; border-radius: 8px; 
+            max-width: 850px; margin: 15px auto; border: 1px solid #334155;
+            min-height: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
 
-        .filters { max-width: 950px; margin: 15px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
-        .f-btn { background: #334155; border: none; color: #94a3b8; padding: 5px 10px; border-radius: 15px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: 0.2s; }
-        .f-btn.active { background: var(--verde); color: #fff; }
+        /* Filtros por Unidade */
+        .filters { max-width: 950px; margin: 15px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+        .btn-filter { 
+            background: #334155; border: none; color: #94a3b8; padding: 6px 12px; 
+            border-radius: 15px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: 0.3s;
+        }
+        .btn-filter.active, .btn-filter:hover { background: var(--verde); color: #fff; transform: translateY(-2px); }
 
-        #news-container { max-width: 850px; margin: 20px auto; display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
+        #news-container { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 
+        /* Estilo Card-Stack */
         .card {
             display: flex; background: var(--card); border-radius: 12px; overflow: hidden;
-            text-decoration: none; color: inherit; height: 125px; border-left: 6px solid var(--verde);
-            margin-bottom: -15px; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            position: relative; animation: slideIn 0.5s ease forwards;
+            text-decoration: none; color: inherit; height: 130px; border-left: 6px solid var(--verde);
+            margin-bottom: -15px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; animation: fadeIn 0.6s ease forwards;
         }
-        .card:hover { transform: translateY(-8px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
+        .card:hover { transform: translateY(-10px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
 
-        .img-box { position: relative; width: 230px; min-width: 230px; height: 100%; background: #000; }
-        .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.8; }
-        .badge { position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; font-size: 0.65rem; font-weight: 900; padding: 4px 10px; border-bottom-right-radius: 10px; }
+        .img-box { position: relative; width: 240px; min-width: 240px; height: 100%; background: #000; }
+        .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.85; }
+        
+        .badge { 
+            position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; 
+            font-size: 0.65rem; font-weight: 900; padding: 5px 12px; border-bottom-right-radius: 12px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3); text-transform: uppercase;
+        }
 
-        .pulse { position: absolute; top: 12px; right: 12px; width: 10px; height: 10px; background: var(--vermelho); border-radius: 50%; z-index: 20; animation: p 1.5s infinite; }
-        @keyframes p { 0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); } }
+        /* Animação Pulsação (<1h) */
+        .pulse {
+            position: absolute; top: 12px; right: 12px; width: 12px; height: 12px;
+            background: var(--vermelho); border-radius: 50%; z-index: 20;
+            box-shadow: 0 0 0 rgba(200, 25, 30, 0.4); animation: pulseEffect 1.5s infinite;
+        }
+        @keyframes pulseEffect {
+            0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); }
+        }
 
-        .info { padding: 15px; display: flex; flex-direction: column; justify-content: center; }
-        .title { margin: 0; font-size: 0.95rem; line-height: 1.3; font-weight: 600; color: #fff; }
-        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 5px; }
+        .info { padding: 15px 25px; display: flex; flex-direction: column; justify-content: center; }
+        .title { margin: 0; font-size: 1rem; line-height: 1.3; font-weight: 600; color: #fff; }
+        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 8px; font-weight: bold; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; } }
-        @media (max-width: 600px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 140px; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 700px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 160px; } }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>📡 Radar IF Baiano</h1>
-    <div class="progress-box"><div id="fill"></div></div>
-    <div id="status-log">> Aguardando inicialização...</div>
+    <h1>📡 Radar IF Baiano - DICOM</h1>
+    <div class="progress-container"><div id="bar-fill"></div></div>
+    <div id="status-console">> Sistema pronto. Aguardando sincronização...</div>
 </header>
 
 <div class="filters" id="filters">
-    <button class="f-btn active" onclick="filter('Todos', this)">Todos</button>
+    <button class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos</button>
 </div>
 
 <div id="news-container">
-    <p style="text-align:center; padding: 50px; opacity: 0.5;">Sincronizando Giro pelos 14 Campi...</p>
+    <p style="text-align:center; padding: 50px; opacity: 0.5;">Iniciando varredura pelos 14 Campi...</p>
 </div>
 
 <script>
-    const CAMPI = [
+    const UNIDADES = [
         { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/noticias/feed/" },
         { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/feed/" },
         { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/feed/" },
@@ -79,80 +106,99 @@
     ];
 
     let timer = 120;
-    let dataCache = [];
-    const log = document.getElementById('status-log');
+    let dataStore = [];
+    const consoleLog = document.getElementById('status-console');
 
-    // Botões de filtro
-    CAMPI.forEach(c => {
-        const b = document.createElement('button');
-        b.className = 'f-btn'; b.innerText = c.id;
-        b.onclick = (e) => filter(c.id, e.target);
-        document.getElementById('filters').appendChild(b);
+    // Inicialização de Filtros
+    UNIDADES.forEach(u => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-filter'; btn.innerText = u.id;
+        btn.onclick = (e) => filterByCampus(u.id, e.target);
+        document.getElementById('filters').appendChild(btn);
     });
 
     setInterval(() => {
         timer--;
-        document.getElementById('fill').style.width = (timer / 120 * 100) + "%";
-        if (timer <= 0) { timer = 120; fetchAll(); }
+        document.getElementById('bar-fill').style.width = (timer / 120 * 100) + "%";
+        if (timer <= 0) { timer = 120; giroCompleto(); }
     }, 1000);
 
-    async function fetchAll() {
-        let collected = [];
-        log.innerText = "> Iniciando varredura DICOM...";
+    // Função que tenta rodar em Proxies alternativos se um falhar
+    async function fetchWithRetry(targetUrl) {
+        const proxies = [
+            `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}&t=${Date.now()}`,
+            `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(targetUrl)}`,
+            `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`
+        ];
 
-        for (const campus of CAMPI) {
-            log.innerText = `> Conectando: ${campus.id}...`;
+        for (const proxyUrl of proxies) {
             try {
-                // AllOrigins retorna o XML bruto dentro de 'contents'
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(campus.url)}&_t=${Date.now()}`);
-                const data = await res.json();
+                const response = await fetch(proxyUrl);
+                if (!response.ok) continue;
                 
-                // Parsing do XML via DOMParser (Nativo do Navegador)
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(data.contents, "text/xml");
-                const item = xml.querySelector("item");
+                const data = await response.json();
+                // Normaliza o conteúdo se vier do AllOrigins ou direto do proxy
+                const rawXml = data.contents || (typeof data === 'string' ? data : null);
+                if (rawXml) return rawXml;
+            } catch (e) { continue; }
+        }
+        return null;
+    }
 
-                if (item) {
-                    const title = item.querySelector("title").textContent;
-                    const link = item.querySelector("link").textContent;
-                    const pubDate = new Date(item.querySelector("pubDate").textContent);
-                    const desc = item.querySelector("description")?.textContent || "";
-                    
-                    // Caça imagem no XML
-                    const imgMatch = desc.match(/src="([^"]+)"/);
-                    const img = imgMatch ? imgMatch[1] : `https://picsum.photos/seed/${campus.id}/400/220`;
+    async function giroCompleto() {
+        consoleLog.innerText = "> Iniciando varredura profunda...";
+        let tempBatch = [];
 
-                    collected.push({
-                        title: title,
-                        link: link,
-                        date: pubDate,
-                        campus: campus.id,
-                        img: img,
-                        hot: (Date.now() - pubDate.getTime()) < 3600000
-                    });
-                    log.innerText = `> ${campus.id}: Sincronizado.`;
-                }
-            } catch (e) { 
-                log.innerText = `> ${campus.id}: Falha de rede.`;
-                console.error("Erro no campus " + campus.id, e);
+        for (const unidade of UNIDADES) {
+            consoleLog.innerText = `> Sincronizando: ${unidade.id}...`;
+            
+            // Pausa de 500ms para evitar bloqueio por "excesso de velocidade"
+            await new Promise(r => setTimeout(r, 500));
+
+            const xmlContent = await fetchWithRetry(unidade.url);
+            
+            if (xmlContent) {
+                try {
+                    const parser = new DOMParser();
+                    const xml = parser.parseFromString(xmlContent, "text/xml");
+                    const item = xml.querySelector("item");
+
+                    if (item) {
+                        const pDate = new Date(item.querySelector("pubDate").textContent);
+                        const desc = item.querySelector("description")?.textContent || "";
+                        const imgMatch = desc.match(/src="([^"]+)"/);
+
+                        tempBatch.push({
+                            title: item.querySelector("title").textContent,
+                            link: item.querySelector("link").textContent,
+                            date: pDate,
+                            campus: unidade.id,
+                            img: imgMatch ? imgMatch[1] : `https://picsum.photos/seed/${unidade.id}/400/220`,
+                            hot: (Date.now() - pDate.getTime()) < 3600000
+                        });
+                        consoleLog.innerText = `> ${unidade.id}: OK.`;
+                    }
+                } catch (e) { consoleLog.innerText = `> ${unidade.id}: Erro de Parse XML.`; }
+            } else {
+                consoleLog.innerText = `> ${unidade.id}: FALHA (Proxy bloqueado).`;
             }
         }
 
-        dataCache = collected.sort((a, b) => b.date - a.date);
-        render(dataCache);
-        log.innerText = `> Radar Ativo: ${dataCache.length}/14 unidades online.`;
+        dataStore = tempBatch.sort((a, b) => b.date - a.date);
+        render(dataStore);
+        consoleLog.innerText = `> Ciclo completo. ${dataStore.length}/14 unidades sincronizadas.`;
     }
 
-    function filter(id, btn) {
-        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+    function filterByCampus(id, btn) {
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        render(id === 'Todos' ? dataCache : dataCache.filter(n => n.campus === id));
+        render(id === 'Todos' ? dataStore : dataStore.filter(n => n.campus === id));
     }
 
     function render(list) {
         const container = document.getElementById('news-container');
         if (list.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Ocorreu um erro ao carregar os dados. Verifique sua conexão.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Nenhuma notícia pôde ser carregada. <br>Isso pode ser um bloqueio do Firewall Institucional.</p>";
             return;
         }
         container.innerHTML = list.map(n => `
@@ -169,7 +215,7 @@
             </a>`).join('');
     }
 
-    fetchAll();
+    giroCompleto();
 </script>
 </body>
 </html>
