@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar IF Baiano - DICOM</title>
+    <title>Radar IF Baiano - Monitor DICOM</title>
     <style>
         :root { --verde: #32a041; --vermelho: #c8191e; --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; }
         
         header { text-align: center; margin-bottom: 10px; }
-        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; }
+        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
         
         .progress-container { width: 100%; height: 6px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
@@ -33,7 +33,7 @@
         .card {
             display: flex; background: var(--card); border-radius: 12px; overflow: hidden;
             text-decoration: none; color: inherit; height: 130px; border-left: 6px solid var(--verde);
-            margin-bottom: -15px; transition: 0.4s;
+            margin-bottom: -15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; animation: fadeIn 0.6s ease forwards;
         }
         .card:hover { transform: translateY(-10px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
@@ -56,9 +56,9 @@
 <body>
 
 <header>
-    <h1>📡 Radar IF Baiano</h1>
+    <h1>📡 Radar IF Baiano - DICOM</h1>
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Sistema pronto. Sincronizando via API REST...</div>
+    <div id="status-console">> Sistema pronto. Sincronizando Giro pelos 14 Campi...</div>
 </header>
 
 <div class="filters" id="filters">
@@ -66,143 +66,95 @@
 </div>
 
 <div id="news-container">
-    <p style="text-align:center; padding: 50px; opacity: 0.5;">Aguardando retorno dos Campi...</p>
+    <p style="text-align:center; padding: 50px; opacity: 0.5;">Iniciando primeira varredura do dia...</p>
 </div>
 
 <script>
     const UNIDADES = [
-        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Catu", url: "https://ifbaiano.edu.br/portal/campi/catu/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Mangabeira", url: "https://ifbaiano.edu.br/portal/campi/mangabeira/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Guanambi", url: "https://ifbaiano.edu.br/portal/campi/guanambi/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Itaberaba", url: "https://ifbaiano.edu.br/portal/campi/itaberaba/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Itapetinga", url: "https://ifbaiano.edu.br/portal/campi/itapetinga/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Santa Inês", url: "https://ifbaiano.edu.br/portal/campi/santa-ines/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Bonfim", url: "https://ifbaiano.edu.br/portal/campi/bonfim/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Serrinha", url: "https://ifbaiano.edu.br/portal/campi/serrinha/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Teixeira", url: "https://ifbaiano.edu.br/portal/campi/teixeira/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Uruçuca", url: "https://ifbaiano.edu.br/portal/campi/urucuca/wp-json/wp/v2/posts?per_page=1" },
-        { id: "Valença", url: "https://ifbaiano.edu.br/portal/campi/valenca/wp-json/wp/v2/posts?per_page=1" }
+        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Catu", url: "https://ifbaiano.edu.br/portal/campi/catu/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Mangabeira", url: "https://ifbaiano.edu.br/portal/campi/mangabeira/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Guanambi", url: "https://ifbaiano.edu.br/portal/campi/guanambi/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Itaberaba", url: "https://ifbaiano.edu.br/portal/campi/itaberaba/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Itapetinga", url: "https://ifbaiano.edu.br/portal/campi/itapetinga/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Santa Inês", url: "https://ifbaiano.edu.br/portal/campi/santa-ines/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Bonfim", url: "https://ifbaiano.edu.br/portal/campi/bonfim/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Serrinha", url: "https://ifbaiano.edu.br/portal/campi/serrinha/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Teixeira", url: "https://ifbaiano.edu.br/portal/campi/teixeira/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Uruçuca", url: "https://ifbaiano.edu.br/portal/campi/urucuca/?rest_route=/wp/v2/posts&per_page=1" },
+        { id: "Valença", url: "https://ifbaiano.edu.br/portal/campi/valenca/?rest_route=/wp/v2/posts&per_page=1" }
     ];
 
     let timer = 120;
-    let dataStore = [];
+    let dataStore = []; // Memória persistente do Radar
+    let isInitialLoad = true;
+    const proxy = "https://api.allorigins.win/get?url=";
     const consoleLog = document.getElementById('status-console');
-    const newsContainer = document.getElementById('news-container');
-    const barFill = document.getElementById('bar-fill');
 
-    // Função para sanitizar texto e prevenir XSS
-    function sanitizeText(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // Função para extrair texto puro do HTML
-    function stripHtml(html) {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        return div.textContent || div.innerText || '';
-    }
-
-    // Função para extrair a primeira imagem do conteúdo HTML
-    function extractImageFromHtml(html) {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        const img = div.querySelector('img');
-        return img ? img.src : null;
-    }
-
-    // Inicialização de Filtros
+    // Botões de filtro
     UNIDADES.forEach(u => {
         const btn = document.createElement('button');
-        btn.className = 'btn-filter'; 
-        btn.innerText = u.id;
+        btn.className = 'btn-filter'; btn.innerText = u.id;
         btn.onclick = (e) => filterByCampus(u.id, e.target);
         document.getElementById('filters').appendChild(btn);
     });
 
     setInterval(() => {
         timer--;
-        barFill.style.width = (timer / 120 * 100) + "%";
-        if (timer <= 0) { timer = 120; giroCompleto(); }
+        document.getElementById('bar-fill').style.width = (timer / 120 * 100) + "%";
+        if (timer <= 0) { 
+            timer = 120; 
+            giroCompleto(); 
+        }
     }, 1000);
 
-    async function fetchAPI(url) {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.error(`Erro ao buscar ${url}: ${response.status}`);
-                return null;
-            }
-            const text = await response.text();
-            // Remove BOM se presente
-            const cleanText = text.replace(/^\uFEFF/, '');
-            return JSON.parse(cleanText);
-        } catch (e) {
-            console.error(`Erro ao buscar ou parsear ${url}:`, e);
-            return null;
-        }
-    }
-
     async function giroCompleto() {
-        consoleLog.innerText = "> Iniciando Varredura via API REST...";
-        newsContainer.innerHTML = "<p style='text-align:center; padding: 50px; opacity: 0.5;'>Buscando notícias...</p>";
+        consoleLog.innerText = isInitialLoad ? "> Sincronizando Giro pelos 14 Campi..." : "> Verificando novas publicações...";
         let tempBatch = [];
-        let successCount = 0;
 
         for (const unidade of UNIDADES) {
-            consoleLog.innerText = `> Lendo: ${unidade.id}...`;
-            
-            // Pausa estratégica para evitar sobrecarga
-            await new Promise(r => setTimeout(r, 300));
+            consoleLog.innerText = `> Consultando: ${unidade.id}...`;
+            try {
+                const response = await fetch(`${proxy}${encodeURIComponent(unidade.url)}&_t=${Date.now()}`);
+                const wrapper = await response.json();
+                const posts = JSON.parse(wrapper.contents);
 
-            const data = await fetchAPI(unidade.url);
-            
-            if (data && Array.isArray(data) && data.length > 0) {
-                try {
-                    const post = data[0];
+                if (posts && posts.length > 0) {
+                    const post = posts[0];
                     const pDate = new Date(post.date);
                     
-                    // Extrair imagem do conteúdo ou usar a mídia em destaque
                     let img = `https://picsum.photos/seed/${unidade.id}/400/220`;
-                    
-                    if (post.featured_media) {
-                        // Se houver mídia em destaque, tentar usá-la
-                        img = `https://ifbaiano.edu.br/portal/wp-json/wp/v2/media/${post.featured_media}`;
-                    } else if (post.content && post.content.rendered) {
-                        // Tentar extrair imagem do conteúdo
-                        const extractedImg = extractImageFromHtml(post.content.rendered);
-                        if (extractedImg) {
-                            img = extractedImg;
-                        }
-                    }
+                    const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
+                    if (imgMatch) img = imgMatch[1];
 
                     tempBatch.push({
-                        title: sanitizeText(stripHtml(post.title.rendered)),
-                        link: sanitizeText(post.link),
+                        title: post.title.rendered.replace(/&#8211;/g, '-').replace(/&nbsp;/g, ' ').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"'),
+                        link: post.link,
                         date: pDate,
-                        campus: sanitizeText(unidade.id),
+                        campus: unidade.id,
                         img: img,
                         hot: (Date.now() - pDate.getTime()) < 3600000
                     });
-                    
-                    successCount++;
-                    consoleLog.innerText = `> ${unidade.id}: OK.`;
-                } catch (e) {
-                    console.error(`Erro ao processar post de ${unidade.id}:`, e);
-                    consoleLog.innerText = `> ${unidade.id}: Erro ao processar.`;
                 }
-            } else {
-                consoleLog.innerText = `> ${unidade.id}: Nenhum post encontrado.`;
+            } catch (e) { 
+                // Se falhar a busca atual, tenta manter o que já tínhamos dessa unidade no dataStore
+                const existing = dataStore.find(n => n.campus === unidade.id);
+                if (existing) tempBatch.push(existing);
+                consoleLog.innerText = `> ${unidade.id}: Mantendo versão anterior (Falha de rede).`;
             }
+            await new Promise(r => setTimeout(r, 200));
         }
 
-        dataStore = tempBatch.sort((a, b) => b.date - a.date);
-        render(dataStore);
-        consoleLog.innerText = `> Sucesso! ${successCount}/${UNIDADES.length} unidades sincronizadas.`;
+        // Só atualizamos se conseguimos captar alguma notícia
+        if (tempBatch.length > 0) {
+            dataStore = tempBatch.sort((a, b) => b.date - a.date);
+            render(dataStore);
+            isInitialLoad = false;
+        }
+
+        consoleLog.innerText = `> Radar Atualizado: ${dataStore.length} unidades em exibição.`;
     }
 
     function filterByCampus(id, btn) {
@@ -212,11 +164,15 @@
     }
 
     function render(list) {
-        if (list.length === 0) {
-            newsContainer.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>O Radar não conseguiu captar notícias agora. <br>Tentando novo giro em instantes...</p>";
+        const container = document.getElementById('news-container');
+        // Se for a carga inicial e não tivermos nada, mostra o erro. 
+        // Se for atualização, o render simplesmente sobrescreve o antigo.
+        if (list.length === 0 && isInitialLoad) {
+            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Erro na carga inicial. Tentando novamente...</p>";
             return;
         }
-        newsContainer.innerHTML = list.map(n => `
+
+        container.innerHTML = list.map(n => `
             <a href="${n.link}" target="_blank" class="card">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
                 <div class="img-box">
@@ -230,7 +186,6 @@
             </a>`).join('');
     }
 
-    // Inicia o primeiro giro completo ao carregar a página
     giroCompleto();
 </script>
 </body>
