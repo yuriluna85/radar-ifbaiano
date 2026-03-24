@@ -58,7 +58,7 @@
 <header>
     <h1>📡 Radar IF Baiano</h1>
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Sistema pronto. Sincronizando via Google Tunnel...</div>
+    <div id="status-console">> Sistema pronto. Sincronizando via API REST...</div>
 </header>
 
 <div class="filters" id="filters">
@@ -71,92 +71,138 @@
 
 <script>
     const UNIDADES = [
-        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/noticias/feed/" },
-        { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/feed/" },
-        { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/feed/" },
-        { id: "Catu", url: "https://ifbaiano.edu.br/portal/campi/catu/feed/" },
-        { id: "Mangabeira", url: "https://ifbaiano.edu.br/portal/campi/mangabeira/feed/" },
-        { id: "Guanambi", url: "https://ifbaiano.edu.br/portal/campi/guanambi/feed/" },
-        { id: "Itaberaba", url: "https://ifbaiano.edu.br/portal/campi/itaberaba/feed/" },
-        { id: "Itapetinga", url: "https://ifbaiano.edu.br/portal/campi/itapetinga/feed/" },
-        { id: "Santa Inês", url: "https://ifbaiano.edu.br/portal/campi/santa-ines/feed/" },
-        { id: "Bonfim", url: "https://ifbaiano.edu.br/portal/campi/bonfim/feed/" },
-        { id: "Serrinha", url: "https://ifbaiano.edu.br/portal/campi/serrinha/feed/" },
-        { id: "Teixeira", url: "https://ifbaiano.edu.br/portal/campi/teixeira/feed/" },
-        { id: "Uruçuca", url: "https://ifbaiano.edu.br/portal/campi/urucuca/feed/" },
-        { id: "Valença", url: "https://ifbaiano.edu.br/portal/campi/valenca/feed/" }
+        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Alagoinhas", url: "https://ifbaiano.edu.br/portal/campi/alagoinhas/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Lapa", url: "https://ifbaiano.edu.br/portal/campi/lapa/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Catu", url: "https://ifbaiano.edu.br/portal/campi/catu/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Mangabeira", url: "https://ifbaiano.edu.br/portal/campi/mangabeira/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Guanambi", url: "https://ifbaiano.edu.br/portal/campi/guanambi/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Itaberaba", url: "https://ifbaiano.edu.br/portal/campi/itaberaba/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Itapetinga", url: "https://ifbaiano.edu.br/portal/campi/itapetinga/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Santa Inês", url: "https://ifbaiano.edu.br/portal/campi/santa-ines/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Bonfim", url: "https://ifbaiano.edu.br/portal/campi/bonfim/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Serrinha", url: "https://ifbaiano.edu.br/portal/campi/serrinha/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Teixeira", url: "https://ifbaiano.edu.br/portal/campi/teixeira/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Uruçuca", url: "https://ifbaiano.edu.br/portal/campi/urucuca/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Valença", url: "https://ifbaiano.edu.br/portal/campi/valenca/wp-json/wp/v2/posts?per_page=1" }
     ];
 
     let timer = 120;
     let dataStore = [];
     const consoleLog = document.getElementById('status-console');
+    const newsContainer = document.getElementById('news-container');
+    const barFill = document.getElementById('bar-fill');
+
+    // Função para sanitizar texto e prevenir XSS
+    function sanitizeText(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Função para extrair texto puro do HTML
+    function stripHtml(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        return div.textContent || div.innerText || '';
+    }
+
+    // Função para extrair a primeira imagem do conteúdo HTML
+    function extractImageFromHtml(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const img = div.querySelector('img');
+        return img ? img.src : null;
+    }
 
     // Inicialização de Filtros
     UNIDADES.forEach(u => {
         const btn = document.createElement('button');
-        btn.className = 'btn-filter'; btn.innerText = u.id;
+        btn.className = 'btn-filter'; 
+        btn.innerText = u.id;
         btn.onclick = (e) => filterByCampus(u.id, e.target);
         document.getElementById('filters').appendChild(btn);
     });
 
     setInterval(() => {
         timer--;
-        document.getElementById('bar-fill').style.width = (timer / 120 * 100) + "%";
+        barFill.style.width = (timer / 120 * 100) + "%";
         if (timer <= 0) { timer = 120; giroCompleto(); }
     }, 1000);
 
-    async function fetchViaGoogle(targetUrl) {
-        // O "segredo": Proxy do Google Gadgets
-        const proxyUrl = `https://images1-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&refresh=3600&url=${encodeURIComponent(targetUrl)}`;
+    async function fetchAPI(url) {
         try {
-            const response = await fetch(proxyUrl);
-            if (!response.ok) return null;
-            return await response.text();
-        } catch (e) { return null; }
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`Erro ao buscar ${url}: ${response.status}`);
+                return null;
+            }
+            const text = await response.text();
+            // Remove BOM se presente
+            const cleanText = text.replace(/^\uFEFF/, '');
+            return JSON.parse(cleanText);
+        } catch (e) {
+            console.error(`Erro ao buscar ou parsear ${url}:`, e);
+            return null;
+        }
     }
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Iniciando Varredura via Google Cloud...";
+        consoleLog.innerText = "> Iniciando Varredura via API REST...";
+        newsContainer.innerHTML = "<p style='text-align:center; padding: 50px; opacity: 0.5;'>Buscando notícias...</p>";
         let tempBatch = [];
+        let successCount = 0;
 
         for (const unidade of UNIDADES) {
             consoleLog.innerText = `> Lendo: ${unidade.id}...`;
             
-            // Pausa estratégica de 300ms
+            // Pausa estratégica para evitar sobrecarga
             await new Promise(r => setTimeout(r, 300));
 
-            const xmlContent = await fetchViaGoogle(unidade.url);
+            const data = await fetchAPI(unidade.url);
             
-            if (xmlContent) {
+            if (data && Array.isArray(data) && data.length > 0) {
                 try {
-                    const parser = new DOMParser();
-                    const xml = parser.parseFromString(xmlContent, "text/xml");
-                    const item = xml.querySelector("item");
-
-                    if (item) {
-                        const pDate = new Date(item.querySelector("pubDate").textContent);
-                        const desc = item.querySelector("description")?.textContent || "";
-                        const imgMatch = desc.match(/src="([^"]+)"/);
-
-                        tempBatch.push({
-                            title: item.querySelector("title").textContent,
-                            link: item.querySelector("link").textContent,
-                            date: pDate,
-                            campus: unidade.id,
-                            img: imgMatch ? imgMatch[1] : `https://picsum.photos/seed/${unidade.id}/400/220`,
-                            hot: (Date.now() - pDate.getTime()) < 3600000
-                        });
-                        consoleLog.innerText = `> ${unidade.id}: OK.`;
+                    const post = data[0];
+                    const pDate = new Date(post.date);
+                    
+                    // Extrair imagem do conteúdo ou usar a mídia em destaque
+                    let img = `https://picsum.photos/seed/${unidade.id}/400/220`;
+                    
+                    if (post.featured_media) {
+                        // Se houver mídia em destaque, tentar usá-la
+                        img = `https://ifbaiano.edu.br/portal/wp-json/wp/v2/media/${post.featured_media}`;
+                    } else if (post.content && post.content.rendered) {
+                        // Tentar extrair imagem do conteúdo
+                        const extractedImg = extractImageFromHtml(post.content.rendered);
+                        if (extractedImg) {
+                            img = extractedImg;
+                        }
                     }
-                } catch (e) { consoleLog.innerText = `> ${unidade.id}: Erro de XML.`; }
+
+                    tempBatch.push({
+                        title: sanitizeText(stripHtml(post.title.rendered)),
+                        link: sanitizeText(post.link),
+                        date: pDate,
+                        campus: sanitizeText(unidade.id),
+                        img: img,
+                        hot: (Date.now() - pDate.getTime()) < 3600000
+                    });
+                    
+                    successCount++;
+                    consoleLog.innerText = `> ${unidade.id}: OK.`;
+                } catch (e) {
+                    console.error(`Erro ao processar post de ${unidade.id}:`, e);
+                    consoleLog.innerText = `> ${unidade.id}: Erro ao processar.`;
+                }
             } else {
-                consoleLog.innerText = `> ${unidade.id}: Servidor ocupado.`;
+                consoleLog.innerText = `> ${unidade.id}: Nenhum post encontrado.`;
             }
         }
 
         dataStore = tempBatch.sort((a, b) => b.date - a.date);
         render(dataStore);
-        consoleLog.innerText = `> Sucesso! ${dataStore.length}/14 unidades sincronizadas.`;
+        consoleLog.innerText = `> Sucesso! ${successCount}/${UNIDADES.length} unidades sincronizadas.`;
     }
 
     function filterByCampus(id, btn) {
@@ -166,12 +212,11 @@
     }
 
     function render(list) {
-        const container = document.getElementById('news-container');
         if (list.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>O Radar não conseguiu captar notícias agora. <br>Tentando novo giro em instantes...</p>";
+            newsContainer.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>O Radar não conseguiu captar notícias agora. <br>Tentando novo giro em instantes...</p>";
             return;
         }
-        container.innerHTML = list.map(n => `
+        newsContainer.innerHTML = list.map(n => `
             <a href="${n.link}" target="_blank" class="card">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
                 <div class="img-box">
@@ -185,6 +230,7 @@
             </a>`).join('');
     }
 
+    // Inicia o primeiro giro completo ao carregar a página
     giroCompleto();
 </script>
 </body>
