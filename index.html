@@ -33,7 +33,6 @@
             min-height: 100vh;
         }
         
-        /* Header Compacto e Horizontal */
         header { 
             background: var(--if-branco); 
             padding: 15px 30px; 
@@ -43,25 +42,23 @@
             margin-bottom: 25px;
         }
         
-        /* Container Flex para alinhar Logo e Texto lado a lado */
         .header-main {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 25px; /* Espaço entre logo e texto */
+            gap: 25px;
             margin-bottom: 15px;
         }
         
-        /* Logo ajustada pela altura para alinhar com o h1 */
         .logo-if { 
-            height: 110px; /* Altura fixa para compor com o texto */
+            height: 110px;
             width: auto;
             margin: 0;
         }
         
         h1 { 
             color: var(--if-preto); 
-            font-size: 2rem; /* Levemente menor para alinhar horizontalmente */
+            font-size: 2rem; 
             margin: 0; 
             font-weight: 800; 
             text-transform: uppercase; 
@@ -98,7 +95,6 @@
 
         .img-box { position: relative; width: 35%; min-width: 220px; height: 100%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; transition: 0.5s; }
-        /* Ajuste para quando for a logo vertical (fallback nos cards) */
         .img-src.fallback { background-size: contain; background-repeat: no-repeat; width: 85%; height: 85%; }
         
         .badge { position: absolute; top: 0; left: 0; background: var(--if-verde); color: var(--if-branco); font-size: 0.8rem; font-weight: 900; padding: 10px 15px; border-bottom-right-radius: 20px; text-transform: uppercase; z-index: 10; }
@@ -114,8 +110,6 @@
             .card { height: auto; flex-direction: column; } 
             .img-box { width: 100%; height: 220px; } 
             .info { width: 100%; padding: 25px; } 
-            
-            /* Ajuste mobile para o Header */
             .header-main { flex-direction: column; gap: 10px; }
             .logo-if { height: 90px; }
             h1 { font-size: 1.6rem; text-align: center; }
@@ -131,22 +125,23 @@
     </div>
     
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Sistema Padronizado DICOM (Modo Compacto). Iniciando Ronda...</div>
+    <div id="status-console">> Painel Institucional Pronto. Iniciando Ronda...</div>
 </header>
 
 <div class="filters" id="filters">
-    <button class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos</button>
+    <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
 </div>
 
 <div id="news-container">
     <p style="text-align:center; padding: 100px; font-size: 1.5rem; color: var(--txt-secundario); opacity: 0.7;">
-        Sincronizando mural institucional...
+        Sincronizando Giro pelos 15 Campi...
     </p>
 </div>
 
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
+    // Agora buscamos as 5 últimas de cada unidade
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
@@ -168,10 +163,10 @@
     let timer = 120;
     let dataStore = [];
     let isInitialLoad = true;
+    let currentFilter = 'Todos';
     const proxy = "https://api.allorigins.win/get?url=";
     const consoleLog = document.getElementById('status-console');
 
-    // Refresh forçado a cada 1 hora para manutenção de memória
     setTimeout(() => { location.reload(); }, 3600000);
 
     UNIDADES.forEach(u => {
@@ -189,62 +184,91 @@
 
     async function giroCompleto() {
         consoleLog.innerText = isInitialLoad ? "> Sincronizando Giro pelos 15 Campi..." : "> Verificando novas publicações...";
-        let currentMap = new Map(dataStore.map(function(item) { return [item.campus, item]; }));
+        let tempBatch = [];
 
         for (const unidade of UNIDADES) {
             consoleLog.innerText = `> Consultando API: ${unidade.id}...`;
             try {
-                const response = await fetch(`${proxy}${encodeURIComponent(unidade.url + "?per_page=1")}&_t=${Date.now()}`);
+                // Buscamos 5 por unidade agora
+                const response = await fetch(`${proxy}${encodeURIComponent(unidade.url + "?per_page=5")}&_t=${Date.now()}`);
                 const wrapper = await response.json();
                 const posts = JSON.parse(wrapper.contents);
 
-                if (posts && posts.length > 0) {
-                    const post = posts[0];
-                    const pDate = new Date(post.date);
-                    
-                    let img = LOGO_VERTICAL;
-                    let isFallback = true;
-                    
-                    const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
-                    if (imgMatch) {
-                        img = imgMatch[1];
-                        isFallback = false;
-                    }
+                if (posts && Array.isArray(posts)) {
+                    posts.forEach(post => {
+                        const pDate = new Date(post.date);
+                        let img = LOGO_VERTICAL;
+                        let isFallback = true;
+                        
+                        const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
+                        if (imgMatch) {
+                            img = imgMatch[1];
+                            isFallback = false;
+                        }
 
-                    currentMap.set(unidade.id, {
-                        title: post.title.rendered.replace(/&#8211;/g, '-').replace(/&nbsp;/g, ' ').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"'),
-                        link: post.link,
-                        date: pDate,
-                        campus: unidade.id,
-                        img: img,
-                        isFallback: isFallback,
-                        hot: (Date.now() - pDate.getTime()) < 3600000
+                        tempBatch.push({
+                            id: post.id,
+                            title: post.title.rendered.replace(/&#8211;/g, '-').replace(/&nbsp;/g, ' ').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"'),
+                            link: post.link,
+                            date: pDate,
+                            campus: unidade.id,
+                            img: img,
+                            isFallback: isFallback,
+                            hot: (Date.now() - pDate.getTime()) < 3600000
+                        });
                     });
                 }
             } catch (e) { 
-                consoleLog.innerText = `> ${unidade.id}: Sem resposta (WP-JSON). Mantendo cache.`;
+                // Fallback: mantém o que já tinha dessa unidade se falhar
+                const oldOnes = dataStore.filter(n => n.campus === unidade.id);
+                tempBatch = tempBatch.concat(oldOnes);
+                consoleLog.innerText = `> ${unidade.id}: Sem resposta. Mantendo cache.`;
             }
             await new Promise(function(r) { setTimeout(r, 300); });
         }
 
-        dataStore = Array.from(currentMap.values()).sort(function(a, b) { return b.date - a.date; });
-        if (dataStore.length > 0) {
-            render(dataStore);
-            isInitialLoad = false;
-        }
-        consoleLog.innerText = `> Monitor Ativo: ${dataStore.length}/15 unidades sincronizadas.`;
+        dataStore = tempBatch;
+        render(dataStore);
+        isInitialLoad = false;
+        consoleLog.innerText = `> Monitor Online. Ronda completa realizada.`;
     }
 
     function filterByCampus(id, btn) {
+        currentFilter = id;
         document.querySelectorAll('.btn-filter').forEach(function(b) { b.classList.remove('active'); });
         btn.classList.add('active');
-        render(id === 'Todos' ? dataStore : dataStore.filter(function(n) { return n.campus === id; }));
+        render(dataStore);
     }
 
     function render(list) {
         const container = document.getElementById('news-container');
-        if (list.length === 0) return;
-        container.innerHTML = list.map(n => `
+        let displayList = [];
+
+        if (currentFilter === 'Todos') {
+            // LÓGICA: Pega apenas a mais recente de cada campus
+            const latestMap = new Map();
+            list.forEach(item => {
+                if (!latestMap.has(item.campus)) {
+                    latestMap.set(item.campus, item);
+                } else {
+                    const existing = latestMap.get(item.campus);
+                    if (item.date > existing.date) {
+                        latestMap.set(item.campus, item);
+                    }
+                }
+            });
+            displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
+        } else {
+            // LÓGICA: Pega as 5 últimas da unidade selecionada
+            displayList = list
+                .filter(n => n.campus === currentFilter)
+                .sort((a, b) => b.date - a.date)
+                .slice(0, 5);
+        }
+
+        if (displayList.length === 0) return;
+        
+        container.innerHTML = displayList.map(n => `
             <a href="${n.link}" target="_blank" class="card">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
                 <div class="img-box">
