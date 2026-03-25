@@ -112,13 +112,14 @@
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
+    // Concursos agora aponta para /pages/ para capturar editais
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
-        { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
+        { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" },
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/mangabeira/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -137,6 +138,7 @@
     let currentFilter = 'Todos';
     const consoleLog = document.getElementById('status-console');
 
+    // Manutenção de memória (Hard Refresh) de hora em hora
     setTimeout(() => { location.reload(); }, 3600000);
 
     UNIDADES.forEach(u => {
@@ -153,12 +155,13 @@
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Verificando publicações...";
+        consoleLog.innerText = "> Verificando novas publicações...";
         let tempBatch = [];
 
         for (const unidade of UNIDADES) {
             try {
-                const response = await fetch(`${unidade.url}?per_page=5&_t=${Date.now()}`);
+                // Forçamos orderby=date para garantir que a última criação venha primeiro
+                const response = await fetch(`${unidade.url}?per_page=5&orderby=date&order=desc&_t=${Date.now()}`);
                 const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
@@ -190,7 +193,7 @@
         dataStore = tempBatch;
         render(dataStore);
         isInitialLoad = false;
-        consoleLog.innerText = `> Monitor Online. Última verificação: ${new Date().toLocaleTimeString('pt-BR')}`;
+        consoleLog.innerText = `> Monitor Online. Ronda completa: ${new Date().toLocaleTimeString('pt-BR')}`;
     }
 
     function filterByCampus(id, btn) {
@@ -213,17 +216,16 @@
             });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
 
-            // Ordenação Especial DICOM: Reitoria (0) e Concursos (1) no topo
-            const sortSpecial = (campusName, targetIdx) => {
+            // Reitoria e Concursos no topo com destaque duplo
+            const sortTop = (campusName, targetIdx) => {
                 const idx = displayList.findIndex(n => n.campus === campusName);
                 if (idx > -1) {
                     const item = displayList.splice(idx, 1)[0];
                     displayList.splice(targetIdx, 0, item);
                 }
             };
-            sortSpecial('Concursos', 0);
-            sortSpecial('Reitoria', 0); // Reitoria fica em 0 e empurra Concursos para 1
-            
+            sortTop('Concursos', 0);
+            sortTop('Reitoria', 0); 
         } else {
             displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
         }
@@ -231,7 +233,7 @@
         if (displayList.length === 0) return;
         
         container.innerHTML = displayList.map((n, index) => {
-            // Lógica de destaque: Aba 'Todos' destaca os 2 primeiros. Abas individuais destacam o 1º.
+            // Featured: 2 primeiros na Home (Reitoria/Concursos) ou o 1º na aba individual
             const isFeatured = (currentFilter === 'Todos' ? index < 2 : index === 0);
             return `
             <a href="${n.link}" target="_blank" class="card ${isFeatured ? 'featured' : ''}">
