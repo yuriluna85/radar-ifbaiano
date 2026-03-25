@@ -59,6 +59,7 @@
         
         @media (min-width: 1024px) { 
             #news-container { grid-template-columns: 1fr 1fr; }
+            /* Notícia em Destaque ocupando as duas colunas */
             .featured { grid-column: 1 / span 2; }
         }
 
@@ -83,12 +84,12 @@
         .info { padding: 25px; display: flex; flex-direction: column; justify-content: center; width: 65%; }
         .title { margin: 0; font-size: 1.45rem; line-height: 1.2; font-weight: 800; color: var(--if-preto); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
         .card.featured .title { font-size: 1.8rem; -webkit-line-clamp: 3; }
-        .date { font-size: 1rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
+        .date { font-size: 1.05rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
         @media (max-width: 750px) { 
             .card { height: auto; flex-direction: column; } .card.featured { height: auto; }
             .img-box { width: 100%; height: 220px; } .info { width: 100%; padding: 25px; } 
-            .logo-if { height: 90px; } h1 { font-size: 1.6rem; text-align: center; }
+            .header-main { flex-direction: column; gap: 10px; } .logo-if { height: 90px; } h1 { font-size: 1.6rem; text-align: center; }
         }
     </style>
 </head>
@@ -112,14 +113,12 @@
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
-    // Concursos agora aponta para /pages/ para capturar editais
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
-        //{ id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/sites/" },
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/mangabeira/wp-json/wp/v2/posts/" },
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -138,7 +137,6 @@
     let currentFilter = 'Todos';
     const consoleLog = document.getElementById('status-console');
 
-    // Manutenção de memória (Hard Refresh) de hora em hora
     setTimeout(() => { location.reload(); }, 3600000);
 
     UNIDADES.forEach(u => {
@@ -155,13 +153,13 @@
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Verificando novas publicações...";
+        consoleLog.innerText = "> Verificando publicações...";
         let tempBatch = [];
 
         for (const unidade of UNIDADES) {
             try {
-                // Forçamos orderby=date para garantir que a última criação venha primeiro
-                const response = await fetch(`${unidade.url}?per_page=5&orderby=date&order=desc&_t=${Date.now()}`);
+                // Buscamos 5 por unidade para garantir histórico
+                const response = await fetch(`${unidade.url}?per_page=5&_t=${Date.now()}`);
                 const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
@@ -193,7 +191,7 @@
         dataStore = tempBatch;
         render(dataStore);
         isInitialLoad = false;
-        consoleLog.innerText = `> Monitor Online. Ronda completa: ${new Date().toLocaleTimeString('pt-BR')}`;
+        consoleLog.innerText = `> Monitor Online. Última verificação: ${new Date().toLocaleTimeString('pt-BR')}`;
     }
 
     function filterByCampus(id, btn) {
@@ -208,6 +206,7 @@
         let displayList = [];
 
         if (currentFilter === 'Todos') {
+            // Pega a mais recente de cada campus
             const latestMap = new Map();
             list.forEach(item => {
                 if (!latestMap.has(item.campus) || item.date > latestMap.get(item.campus).date) {
@@ -216,25 +215,22 @@
             });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
 
-            // Reitoria e Concursos no topo com destaque duplo
-            const sortTop = (campusName, targetIdx) => {
-                const idx = displayList.findIndex(n => n.campus === campusName);
-                if (idx > -1) {
-                    const item = displayList.splice(idx, 1)[0];
-                    displayList.splice(targetIdx, 0, item);
-                }
-            };
-            sortTop('Concursos', 0);
-            sortTop('Reitoria', 0); 
+            // Tira a Reitoria do meio e coloca na frente para ser o Featured
+            const idxReitoria = displayList.findIndex(n => n.campus === 'Reitoria');
+            if (idxReitoria > -1) {
+                const reitoria = displayList.splice(idxReitoria, 1)[0];
+                displayList.unshift(reitoria);
+            }
         } else {
+            // Filtra o campus e pega as 5 últimas
             displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
         }
 
         if (displayList.length === 0) return;
         
         container.innerHTML = displayList.map((n, index) => {
-            // Featured: 2 primeiros na Home (Reitoria/Concursos) ou o 1º na aba individual
-            const isFeatured = (currentFilter === 'Todos' ? index < 2 : index === 0);
+            // É destaque se for o primeiro da lista
+            const isFeatured = (index === 0);
             return `
             <a href="${n.link}" target="_blank" class="card ${isFeatured ? 'featured' : ''}">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
