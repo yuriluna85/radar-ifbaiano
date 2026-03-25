@@ -5,60 +5,228 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radar IF Baiano - Monitor DICOM</title>
     <style>
-        :root { --verde: #32a041; --vermelho: #c8191e; --bg: #0f172a; --card: #1e293b; --txt: #f8fafc; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 20px; }
+        :root { 
+            /* Cores Oficiais Extraídas da Marca IF Baiano */
+            --if-verde: #009639; /* Verde institucional */
+            --if-vermelho: #C8102E; /* Vermelho do detalhe da logo */
+            --if-preto: #000000;
+            --if-branco: #FFFFFF;
+            --bg-painel: #F4F4F4; /* Cinza muito claro para fundo */
+            --card-bg: #FFFFFF;
+            --txt-primario: #333333;
+            --txt-secundario: #666666;
+        }
         
-        header { text-align: center; margin-bottom: 10px; }
-        h1 { color: var(--verde); font-size: 1.6rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg-painel); 
+            color: var(--txt-primario); 
+            margin: 0; 
+            padding: 25px; 
+            line-height: 1.4;
+        }
         
-        .progress-container { width: 100%; height: 6px; background: #334155; margin-top: 15px; border-radius: 10px; overflow: hidden; }
-        #bar-fill { width: 100%; height: 100%; background: var(--verde); transition: width 1s linear; }
+        header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+            background: var(--if-branco); 
+            padding: 20px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
         
+        /* Estilização da Logo Institucional */
+        .logo-if {
+            max-width: 350px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        
+        /* Título Secundário em Preto Institucional */
+        h1 { 
+            color: var(--if-preto); 
+            font-size: 2.2rem; 
+            margin: 0; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            letter-spacing: -1px; 
+        }
+        
+        .progress-container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            height: 10px; 
+            background: #E0E0E0; 
+            border-radius: 20px; 
+            overflow: hidden; 
+        }
+        #bar-fill { width: 100%; height: 100%; background: var(--if-verde); transition: width 1s linear; }
+        
+        /* Console mantém estética dark para funcionalidade */
         #status-console { 
-            font-family: 'Courier New', monospace; font-size: 0.7rem; color: #10b981; 
-            background: #000; padding: 12px; border-radius: 8px; 
-            max-width: 850px; margin: 15px auto; border: 1px solid #334155;
-            min-height: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            font-family: 'Courier New', monospace; 
+            font-size: 0.85rem; 
+            color: #10b981; 
+            background: #222; 
+            padding: 15px; 
+            border-radius: 12px; 
+            max-width: 1200px; 
+            margin: 15px auto; 
+            border: 2px solid #444;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.7);
         }
 
-        .filters { max-width: 950px; margin: 15px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+        .filters { 
+            max-width: 1200px; 
+            margin: 25px auto; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+        }
         .btn-filter { 
-            background: #334155; border: none; color: #94a3b8; padding: 6px 12px; 
-            border-radius: 15px; cursor: pointer; font-size: 0.65rem; font-weight: 700; transition: 0.3s;
+            background: #E0E0E0; 
+            border: none; 
+            color: var(--txt-primario); 
+            padding: 10px 18px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            font-weight: 700; 
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
-        .btn-filter.active, .btn-filter:hover { background: var(--verde); color: #fff; }
+        .btn-filter.active, .btn-filter:hover { 
+            background: var(--if-verde); 
+            color: var(--if-branco);
+            border-color: var(--if-verde);
+            transform: scale(1.05);
+        }
 
-        #news-container { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+        /* Container em Grid: 1 coluna mobile / 2 colunas desktop */
+        #news-container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 25px; 
+            padding-bottom: 50px;
+        }
+
+        @media (min-width: 1024px) {
+            #news-container { grid-template-columns: 1fr 1fr; }
+        }
 
         .card {
-            display: flex; background: var(--card); border-radius: 12px; overflow: hidden;
-            text-decoration: none; color: inherit; height: 130px; border-left: 6px solid var(--verde);
-            margin-bottom: -15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); position: relative; animation: fadeIn 0.6s ease forwards;
+            display: flex; 
+            background: var(--card-bg); 
+            border-radius: 18px; 
+            overflow: hidden;
+            text-decoration: none; 
+            color: inherit; 
+            height: 180px; 
+            border-left: 10px solid var(--if-verde); /* Borda em Verde Institucional */
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+            position: relative;
         }
-        .card:hover { transform: translateY(-10px); z-index: 10; border-left-color: var(--vermelho); background: #334155; }
+        .card:hover { 
+            transform: translateY(-8px) scale(1.01); 
+            border-left-color: var(--if-vermelho); /* Hover em Vermelho Institucional */
+            background: #FAFAFA; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
 
-        .img-box { position: relative; width: 240px; min-width: 240px; height: 100%; background: #000; }
-        .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; opacity: 0.85; }
-        .badge { position: absolute; top: 0; left: 0; background: var(--verde); color: #fff; font-size: 0.65rem; font-weight: 900; padding: 5px 12px; border-bottom-right-radius: 12px; text-transform: uppercase; }
+        .img-box { 
+            position: relative; 
+            width: 35%; 
+            min-width: 180px; 
+            height: 100%; 
+            background: #F0F0F0; 
+        }
+        .img-src { 
+            width: 100%; 
+            height: 100%; 
+            background-size: cover; 
+            background-position: center; 
+        }
+        
+        .badge { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            background: var(--if-verde); 
+            color: var(--if-branco); 
+            font-size: 0.8rem; 
+            font-weight: 900; 
+            padding: 8px 15px; 
+            border-bottom-right-radius: 15px; 
+            text-transform: uppercase;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
+        }
 
-        .pulse { position: absolute; top: 12px; right: 12px; width: 12px; height: 12px; background: var(--vermelho); border-radius: 50%; z-index: 20; animation: pulseEffect 1.5s infinite; }
-        @keyframes pulseEffect { 0% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(200, 25, 30, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 25, 30, 0); } }
+        /* Ponto de Pulsação em Vermelho Institucional */
+        .pulse { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            width: 18px; 
+            height: 18px; 
+            background: var(--if-vermelho); 
+            border-radius: 50%; 
+            z-index: 20; 
+            animation: pulseEffect 1.5s infinite; 
+        }
+        @keyframes pulseEffect { 
+            0% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0.8); } 
+            70% { box-shadow: 0 0 0 15px rgba(200, 16, 46, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); } 
+        }
 
-        .info { padding: 15px 25px; display: flex; flex-direction: column; justify-content: center; }
-        .title { margin: 0; font-size: 1rem; line-height: 1.3; font-weight: 600; color: #fff; }
-        .date { font-size: 0.65rem; color: #94a3b8; margin-top: 8px; }
+        .info { 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            width: 65%;
+        }
+        
+        /* Títulos Maiores em Preto Institucional */
+        .title { 
+            margin: 0; 
+            font-size: 1.3rem; 
+            line-height: 1.2; 
+            font-weight: 800; 
+            color: var(--if-preto);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .date { 
+            font-size: 0.95rem; 
+            color: var(--txt-secundario); 
+            margin-top: 12px; 
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; } }
-        @media (max-width: 700px) { .card { height: auto; flex-direction: column; margin-bottom: 20px; } .img-box { width: 100%; height: 160px; } }
+        @media (max-width: 600px) { 
+            .card { height: auto; flex-direction: column; } 
+            .img-box { width: 100%; height: 200px; } 
+            .info { width: 100%; padding: 25px; }
+            h1 { font-size: 1.6rem; }
+            .logo-if { max-width: 250px; }
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>📡 Radar IF Baiano - DICOM</h1>
+    <img src="image_0.png" alt="Logo Instituto Federal Baiano" class="logo-if">
+    <h1>Radar de Notícias - DICOM</h1>
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Sistema pronto. Sincronizando Giro pelos 14 Campi...</div>
+    <div id="status-console">> Painel Institucional Ativo. Sincronizando Giro 15 Unidades...</div>
 </header>
 
 <div class="filters" id="filters">
@@ -66,35 +234,38 @@
 </div>
 
 <div id="news-container">
-    <p style="text-align:center; padding: 50px; opacity: 0.5;">Iniciando primeira varredura do dia...</p>
+    <p style="text-align:center; padding: 100px; font-size: 1.5rem; color: var(--txt-secundario); opacity: 0.7;">
+        Carregando mural de notícias institucionais...
+    </p>
 </div>
 
 <script>
     const UNIDADES = [
-        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/wp-json/wp/v2/posts" },
-        { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts" },
-        { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts" },
-        { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts" },
-        { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts" },
-        { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts" },
-        { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts" },
-        { id: "Santa Inês", url: "https://www.ifbaiano.edu.br/unidades/santaines/wp-json/wp/v2/posts" },
-        { id: "Bonfim", url: "https://www.ifbaiano.edu.br/unidades/bonfim/wp-json/wp/v2/posts" },
-        { id: "Serrinha", url: "https://www.ifbaiano.edu.br/unidades/serrinha/wp-json/wp/v2/posts" },
-        { id: "Teixeira", url: "https://www.ifbaiano.edu.br/unidades/teixiera/wp-json/wp/v2/posts" },
-        { id: "Uruçuca", url: "https://www.ifbaiano.edu.br/unidades/urucuca/wp-json/wp/v2/posts" },
-        { id: "Valença", url: "https://www.ifbaiano.edu.br/unidades/valenca/wp-json/wp/v2/posts" },
-        { id: "Xique-Xique", url: "https://www.ifbaiano.edu.br/unidades/xique-xique/wp-json/wp/v2/posts" },
+        { id: "Reitoria", url: "https://ifbaiano.edu.br/portal/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Santa Inês", url: "https://www.ifbaiano.edu.br/unidades/santaines/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Bonfim", url: "https://www.ifbaiano.edu.br/unidades/bonfim/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Serrinha", url: "https://www.ifbaiano.edu.br/unidades/serrinha/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Teixeira", url: "https://www.ifbaiano.edu.br/unidades/teixiera/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Uruçuca", url: "https://www.ifbaiano.edu.br/unidades/urucuca/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Valença", url: "https://www.ifbaiano.edu.br/unidades/valenca/wp-json/wp/v2/posts?per_page=1" },
+        { id: "Xique-Xique", url: "https://www.ifbaiano.edu.br/unidades/xique-xique/wp-json/wp/v2/posts?per_page=1" }
     ];
 
     let timer = 120;
-    let dataStore = []; // Memória persistente do Radar
+    let dataStore = [];
     let isInitialLoad = true;
     const proxy = "https://api.allorigins.win/get?url=";
     const consoleLog = document.getElementById('status-console');
+    const container = document.getElementById('news-container');
 
-    // Botões de filtro
+    // Botões
     UNIDADES.forEach(u => {
         const btn = document.createElement('button');
         btn.className = 'btn-filter'; btn.innerText = u.id;
@@ -105,18 +276,15 @@
     setInterval(() => {
         timer--;
         document.getElementById('bar-fill').style.width = (timer / 120 * 100) + "%";
-        if (timer <= 0) { 
-            timer = 120; 
-            giroCompleto(); 
-        }
+        if (timer <= 0) { timer = 120; giroCompleto(); }
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = isInitialLoad ? "> Sincronizando Giro pelos 14 Campi..." : "> Verificando novas publicações...";
-        let tempBatch = [];
+        consoleLog.innerText = isInitialLoad ? "> Sincronizando mural institucional..." : "> Atualizando painel em background...";
+        let currentMap = new Map(dataStore.map(item => [item.campus, item]));
 
         for (const unidade of UNIDADES) {
-            consoleLog.innerText = `> Consultando: ${unidade.id}...`;
+            consoleLog.innerText = `> Verificando: ${unidade.id}...`;
             try {
                 const response = await fetch(`${proxy}${encodeURIComponent(unidade.url)}&_t=${Date.now()}`);
                 const wrapper = await response.json();
@@ -125,12 +293,11 @@
                 if (posts && posts.length > 0) {
                     const post = posts[0];
                     const pDate = new Date(post.date);
-                    
-                    let img = `https://picsum.photos/seed/${unidade.id}/400/220`;
+                    let img = `https://picsum.photos/seed/${unidade.id}/600/400`;
                     const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
                     if (imgMatch) img = imgMatch[1];
 
-                    tempBatch.push({
+                    currentMap.set(unidade.id, {
                         title: post.title.rendered.replace(/&#8211;/g, '-').replace(/&nbsp;/g, ' ').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"'),
                         link: post.link,
                         date: pDate,
@@ -140,22 +307,18 @@
                     });
                 }
             } catch (e) { 
-                // Se falhar a busca atual, tenta manter o que já tínhamos dessa unidade no dataStore
-                const existing = dataStore.find(n => n.campus === unidade.id);
-                if (existing) tempBatch.push(existing);
-                consoleLog.innerText = `> ${unidade.id}: Mantendo versão anterior (Falha de rede).`;
+                consoleLog.innerText = `> ${unidade.id}: Sem resposta do portal. Mantendo cache.`;
             }
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 250));
         }
 
-        // Só atualizamos se conseguimos captar alguma notícia
-        if (tempBatch.length > 0) {
-            dataStore = tempBatch.sort((a, b) => b.date - a.date);
+        dataStore = Array.from(currentMap.values()).sort((a, b) => b.date - a.date);
+        
+        if (dataStore.length > 0) {
             render(dataStore);
             isInitialLoad = false;
         }
-
-        consoleLog.innerText = `> Radar Atualizado: ${dataStore.length} unidades em exibição.`;
+        consoleLog.innerText = `> Monitor Institucional Online: ${dataStore.length} unidades conectadas.`;
     }
 
     function filterByCampus(id, btn) {
@@ -165,14 +328,7 @@
     }
 
     function render(list) {
-        const container = document.getElementById('news-container');
-        // Se for a carga inicial e não tivermos nada, mostra o erro. 
-        // Se for atualização, o render simplesmente sobrescreve o antigo.
-        if (list.length === 0 && isInitialLoad) {
-            container.innerHTML = "<p style='text-align:center; padding:50px; opacity:0.5;'>Erro na carga inicial. Tentando novamente...</p>";
-            return;
-        }
-
+        if (list.length === 0) return;
         container.innerHTML = list.map(n => `
             <a href="${n.link}" target="_blank" class="card">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
@@ -182,7 +338,7 @@
                 </div>
                 <div class="info">
                     <h2 class="title">${n.title}</h2>
-                    <div class="date">${n.date.toLocaleDateString('pt-BR')} às ${n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
+                    <div class="date">${n.date.toLocaleDateString('pt-BR')} | ${n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
                 </div>
             </a>`).join('');
     }
