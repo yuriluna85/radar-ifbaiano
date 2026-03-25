@@ -165,7 +165,7 @@
             consoleLog.innerText = `> Requisição Direta: ${unidade.id}...`;
             try {
                 // Fetch Direto sem proxy
-                const response = await fetch(`${unidade.url}?per_page=5&_t=${Date.now()}`);
+                const response = await fetch(`${unidade.url}?per_page=6&_t=${Date.now()}`);
                 const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
@@ -222,7 +222,7 @@
             });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
         } else {
-            displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
+            displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 6);
         }
 
         if (displayList.length === 0) {
