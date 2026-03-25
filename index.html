@@ -50,21 +50,8 @@
             margin-bottom: 15px;
         }
         
-        .logo-if { 
-            height: 110px;
-            width: auto;
-            margin: 0;
-        }
-        
-        h1 { 
-            color: var(--if-preto); 
-            font-size: 2rem; 
-            margin: 0; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            letter-spacing: -1px; 
-            text-align: left;
-        }
+        .logo-if { height: 110px; width: auto; }
+        h1 { color: var(--if-preto); font-size: 2rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
         
         .progress-container { max-width: 1200px; margin: 0 auto 15px auto; height: 10px; background: #E0E0E0; border-radius: 20px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--if-verde); transition: width 1s linear; }
@@ -74,7 +61,6 @@
             background: #1a1a1a; padding: 12px; border-radius: 10px; 
             max-width: 1200px; margin: 0 auto; border: 1px solid #333;
             box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-            min-height: 1.2rem;
         }
 
         .filters { max-width: 1200px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -94,7 +80,7 @@
         .card:hover { transform: translateY(-10px); border-left-color: var(--if-vermelho); background: var(--if-branco); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
 
         .img-box { position: relative; width: 35%; min-width: 220px; height: 100%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; transition: 0.5s; }
+        .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; }
         .img-src.fallback { background-size: contain; background-repeat: no-repeat; width: 85%; height: 85%; }
         
         .badge { position: absolute; top: 0; left: 0; background: var(--if-verde); color: var(--if-branco); font-size: 0.8rem; font-weight: 900; padding: 10px 15px; border-bottom-right-radius: 20px; text-transform: uppercase; z-index: 10; }
@@ -107,12 +93,8 @@
         .date { font-size: 1.05rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
         @media (max-width: 700px) { 
-            .card { height: auto; flex-direction: column; } 
-            .img-box { width: 100%; height: 220px; } 
-            .info { width: 100%; padding: 25px; } 
-            .header-main { flex-direction: column; gap: 10px; }
-            .logo-if { height: 90px; }
-            h1 { font-size: 1.6rem; text-align: center; }
+            .card { height: auto; flex-direction: column; } .img-box { width: 100%; height: 220px; } .info { width: 100%; padding: 25px; } 
+            .header-main { flex-direction: column; gap: 10px; } .logo-if { height: 90px; } h1 { font-size: 1.6rem; text-align: center; }
         }
     </style>
 </head>
@@ -123,25 +105,19 @@
         <img src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
         <h1>Radar de Notícias - DICOM</h1>
     </div>
-    
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Painel Institucional Pronto. Iniciando Ronda...</div>
+    <div id="status-console">> Conexão Direta Ativada. Sincronizando Giro pelos 15 Campi...</div>
 </header>
 
 <div class="filters" id="filters">
     <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
 </div>
 
-<div id="news-container">
-    <p style="text-align:center; padding: 100px; font-size: 1.5rem; color: var(--txt-secundario); opacity: 0.7;">
-        Sincronizando Giro pelos 15 Campi...
-    </p>
-</div>
+<div id="news-container"></div>
 
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
-    // Agora buscamos as 5 últimas de cada unidade
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
@@ -164,8 +140,6 @@
     let dataStore = [];
     let isInitialLoad = true;
     let currentFilter = 'Todos';
-    // const proxy = "https://api.allorigins.win/get?url=";
-    const proxy = "";
     const consoleLog = document.getElementById('status-console');
 
     setTimeout(() => { location.reload(); }, 3600000);
@@ -173,7 +147,7 @@
     UNIDADES.forEach(u => {
         const btn = document.createElement('button');
         btn.className = 'btn-filter'; btn.innerText = u.id;
-        btn.onclick = function(e) { filterByCampus(u.id, e.target); };
+        btn.onclick = (e) => filterByCampus(u.id, e.target);
         document.getElementById('filters').appendChild(btn);
     });
 
@@ -188,24 +162,19 @@
         let tempBatch = [];
 
         for (const unidade of UNIDADES) {
-            consoleLog.innerText = `> Consultando API: ${unidade.id}...`;
+            consoleLog.innerText = `> Requisição Direta: ${unidade.id}...`;
             try {
-                // Buscamos 5 por unidade agora
-                const response = await fetch(`${proxy}${encodeURIComponent(unidade.url + "?per_page=5")}&_t=${Date.now()}`);
-                const wrapper = await response.json();
-                const posts = JSON.parse(wrapper.contents);
+                // Fetch Direto sem proxy
+                const response = await fetch(`${unidade.url}?per_page=5&_t=${Date.now()}`);
+                const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
                     posts.forEach(post => {
                         const pDate = new Date(post.date);
                         let img = LOGO_VERTICAL;
                         let isFallback = true;
-                        
                         const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
-                        if (imgMatch) {
-                            img = imgMatch[1];
-                            isFallback = false;
-                        }
+                        if (imgMatch) { img = imgMatch[1]; isFallback = false; }
 
                         tempBatch.push({
                             id: post.id,
@@ -220,23 +189,22 @@
                     });
                 }
             } catch (e) { 
-                // Fallback: mantém o que já tinha dessa unidade se falhar
                 const oldOnes = dataStore.filter(n => n.campus === unidade.id);
                 tempBatch = tempBatch.concat(oldOnes);
-                consoleLog.innerText = `> ${unidade.id}: Sem resposta. Mantendo cache.`;
+                consoleLog.innerText = `> ${unidade.id}: Erro de CORS ou Rede. Mantendo cache.`;
             }
-            await new Promise(function(r) { setTimeout(r, 300); });
+            await new Promise(r => setTimeout(r, 200));
         }
 
         dataStore = tempBatch;
         render(dataStore);
         isInitialLoad = false;
-        consoleLog.innerText = `> Monitor Online. Ronda completa realizada.`;
+        consoleLog.innerText = `> Monitor Direto Online.`;
     }
 
     function filterByCampus(id, btn) {
         currentFilter = id;
-        document.querySelectorAll('.btn-filter').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         render(dataStore);
     }
@@ -246,28 +214,21 @@
         let displayList = [];
 
         if (currentFilter === 'Todos') {
-            // LÓGICA: Pega apenas a mais recente de cada campus
             const latestMap = new Map();
             list.forEach(item => {
-                if (!latestMap.has(item.campus)) {
+                if (!latestMap.has(item.campus) || item.date > latestMap.get(item.campus).date) {
                     latestMap.set(item.campus, item);
-                } else {
-                    const existing = latestMap.get(item.campus);
-                    if (item.date > existing.date) {
-                        latestMap.set(item.campus, item);
-                    }
                 }
             });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
         } else {
-            // LÓGICA: Pega as 5 últimas da unidade selecionada
-            displayList = list
-                .filter(n => n.campus === currentFilter)
-                .sort((a, b) => b.date - a.date)
-                .slice(0, 5);
+            displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
         }
 
-        if (displayList.length === 0) return;
+        if (displayList.length === 0) {
+            container.innerHTML = `<p style="text-align:center; padding: 50px; color: var(--if-vermelho);">Aguardando dados... Se persistir, verifique o CORS no servidor.</p>`;
+            return;
+        }
         
         container.innerHTML = displayList.map(n => `
             <a href="${n.link}" target="_blank" class="card">
