@@ -29,20 +29,39 @@
             margin: 0; padding: 20px; min-height: 100vh;
         }
         
+        /* HEADER REESTRUTURADO PARA CENTRALIZAÇÃO */
         header { 
             background: var(--if-branco); 
             padding: 15px 35px; border-radius: 20px; 
             box-shadow: 0 4px 25px rgba(0,0,0,0.08);
             border-bottom: 8px solid var(--if-verde);
             margin-bottom: 25px;
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; 
+            /* justify-content: space-between removido para centralizar o bloco left */
+            position: relative; /* Necessário para fixar o relógio */
         }
         
-        .header-left { display: flex; align-items: center; gap: 25px; }
-        .logo-if { height: 100px; width: auto; }
-        h1 { color: var(--if-preto); font-size: 1.8rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
+        /* Container Centralizado (Logo + Título) */
+        .header-left { 
+            display: flex; align-items: center; 
+            margin: 0 auto; /* Mágica da centralização horizontal */
+        }
         
-        .header-right { text-align: right; border-left: 2px solid #ddd; padding-left: 25px; }
+        .logo-if { height: 100px; width: auto; }
+        
+        h1 { 
+            color: var(--if-preto); font-size: 1.8rem; margin: 0; 
+            font-weight: 800; text-transform: uppercase; 
+            letter-spacing: -1px; 
+            text-align: center; /* Centraliza o texto em si */
+            margin-left: 25px; /* Espaço da logo */
+        }
+        
+        /* Relógio Fixo na Direita */
+        .header-right { 
+            text-align: right; border-left: 2px solid #ddd; padding-left: 25px; 
+            position: absolute; right: 35px; /* Fixa na direita independente do centro */
+        }
         #clock { font-size: 2.2rem; font-weight: 900; color: var(--if-preto); line-height: 1; }
         #date-top { font-size: 0.9rem; color: var(--if-verde); font-weight: 700; text-transform: uppercase; }
 
@@ -89,8 +108,10 @@
         .date { font-size: 1rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
         @media (max-width: 800px) { 
-            header { flex-direction: column; text-align: center; gap: 15px; }
-            .header-right { border: none; padding: 0; text-align: center; }
+            header { flex-direction: column; text-align: center; gap: 15px; position: relative; }
+            .header-left { flex-direction: column; margin: 0; }
+            h1 { margin-left: 0; margin-top: 10px; font-size: 1.6rem; }
+            .header-right { border: none; padding: 0; text-align: center; position: relative; right: auto; }
             .card { height: auto; flex-direction: column; } .card.featured { height: auto; }
             .img-box { width: 100%; height: 220px; } .info { width: 100%; padding: 25px; } 
         }
@@ -110,7 +131,7 @@
 </header>
 
 <div class="progress-container"><div id="bar-fill"></div></div>
-<div id="status-console">> Painel DICOM v44.0 Ativo. Sincronizando Giro pelos 15 Campi...</div>
+<div id="status-console">> Painel DICOM v44.1 Ativo. Sincronizando Giro pelos 15 Campi...</div>
 
 <div class="filters" id="filters">
     <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
@@ -121,9 +142,10 @@
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
+    // ARRAY DE UNIDADES REVISADO - CONCURSOS COMENTADO
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
-        { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" },
+        // { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" }, // Linha comentada conforme solicitado
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
@@ -175,30 +197,22 @@
 
         for (const unidade of UNIDADES) {
             try {
-                // Adicionado o parâmetro _embed para capturar a Imagem Destacada oficial
                 const response = await fetch(`${unidade.url}?per_page=5&_embed&orderby=date&order=desc&_t=${Date.now()}`);
                 const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
                     posts.forEach(post => {
                         const pDate = new Date(post.date);
-                        
-                        // Lógica de Captura de Imagem Melhorada
                         let img = LOGO_VERTICAL;
                         let isFallback = true;
 
-                        // 1. Tentar pegar a Imagem Destacada (Featured Media) via _embed
                         if (post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0].source_url) {
                             img = post._embedded['wp:featuredmedia'][0].source_url;
                             isFallback = false;
                         } 
-                        // 2. Se não tiver destacada, procurar a primeira imagem dentro do texto (como era antes)
                         else {
                             const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
-                            if (imgMatch) {
-                                img = imgMatch[1];
-                                isFallback = false;
-                            }
+                            if (imgMatch) { img = imgMatch[1]; isFallback = false; }
                         }
 
                         tempBatch.push({
@@ -252,7 +266,7 @@
                     displayList.splice(targetIdx, 0, item);
                 }
             };
-            sortTop('Concursos', 0);
+            // sortTop('Concursos', 0); // Removido da ordenação de topo
             sortTop('Reitoria', 0); 
         } else {
             displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
@@ -261,7 +275,8 @@
         if (displayList.length === 0) return;
         
         container.innerHTML = displayList.map((n, index) => {
-            const isFeatured = (currentFilter === 'Todos' ? index < 2 : index === 0);
+            // Featured: apenas o 1º da Home (Reitoria) ou o 1º na aba individual
+            const isFeatured = (index === 0);
             return `
             <a href="${n.link}" target="_blank" class="card ${isFeatured ? 'featured' : ''}">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
