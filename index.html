@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Radar IF Baiano - Monitor DICOM</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
         :root { 
             --if-verde: #009639; 
@@ -26,44 +29,31 @@
             background: linear-gradient(-45deg, #ffffff, #f2f2f2, #f9fff9, #ffffff);
             background-size: 400% 400%;
             animation: meshGradient 25s ease infinite;
-            margin: 0; padding: 20px; min-height: 100vh;
+            margin: 0; padding: 0; min-height: 100vh;
+            display: flex; flex-direction: column;
         }
         
-        /* HEADER REESTRUTURADO PARA CENTRALIZAÇÃO */
         header { 
             background: var(--if-branco); 
-            padding: 15px 35px; border-radius: 20px; 
+            padding: 15px 35px; border-radius: 0 0 20px 20px; 
             box-shadow: 0 4px 25px rgba(0,0,0,0.08);
             border-bottom: 8px solid var(--if-verde);
             margin-bottom: 25px;
-            display: flex; align-items: center; 
-            /* justify-content: space-between removido para centralizar o bloco left */
-            position: relative; /* Necessário para fixar o relógio */
+            display: flex; align-items: center; position: relative;
         }
         
-        /* Container Centralizado (Logo + Título) */
-        .header-left { 
-            display: flex; align-items: center; 
-            margin: 0 auto; /* Mágica da centralização horizontal */
-        }
-        
+        .header-left { display: flex; align-items: center; margin: 0 auto; }
         .logo-if { height: 100px; width: auto; }
+        h1 { color: var(--if-preto); font-size: 1.8rem; margin: 0; font-weight: 800; text-transform: uppercase; margin-left: 25px; }
         
-        h1 { 
-            color: var(--if-preto); font-size: 1.8rem; margin: 0; 
-            font-weight: 800; text-transform: uppercase; 
-            letter-spacing: -1px; 
-            text-align: center; /* Centraliza o texto em si */
-            margin-left: 25px; /* Espaço da logo */
-        }
-        
-        /* Relógio Fixo na Direita */
         .header-right { 
             text-align: right; border-left: 2px solid #ddd; padding-left: 25px; 
-            position: absolute; right: 35px; /* Fixa na direita independente do centro */
+            position: absolute; right: 35px; 
         }
         #clock { font-size: 2.2rem; font-weight: 900; color: var(--if-preto); line-height: 1; }
         #date-top { font-size: 0.9rem; color: var(--if-verde); font-weight: 700; text-transform: uppercase; }
+
+        .main-content { padding: 0 20px 100px 20px; flex: 1; }
 
         .progress-container { max-width: 1200px; margin: 0 auto 15px auto; height: 10px; background: #E0E0E0; border-radius: 20px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--if-verde); transition: width 1s linear; }
@@ -78,18 +68,10 @@
         .btn-filter { background: #E0E0E0; border: none; color: var(--txt-primario); padding: 8px 16px; border-radius: 25px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: 0.3s; }
         .btn-filter.active, .btn-filter:hover { background: var(--if-verde); color: var(--if-branco); transform: scale(1.05); }
 
-        #news-container { max-width: 1550px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 30px; padding-bottom: 80px; }
-        
-        @media (min-width: 1024px) { 
-            #news-container { grid-template-columns: 1fr 1fr; }
-            .featured { grid-column: 1 / span 2; }
-        }
+        #news-container { max-width: 1550px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 30px; }
+        @media (min-width: 1024px) { #news-container { grid-template-columns: 1fr 1fr; } .featured { grid-column: 1 / span 2; } }
 
-        .card {
-            display: flex; background: var(--card-bg); border-radius: 20px; overflow: hidden;
-            text-decoration: none; color: inherit; height: 210px; border-left: 12px solid var(--if-verde);
-            transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative;
-        }
+        .card { display: flex; background: var(--card-bg); border-radius: 20px; overflow: hidden; text-decoration: none; color: inherit; height: 210px; border-left: 12px solid var(--if-verde); transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; }
         .card.featured { height: 260px; border-left-width: 20px; background: #fff; }
         .card:hover { transform: translateY(-10px); border-left-color: var(--if-vermelho); background: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
 
@@ -99,29 +81,41 @@
         
         .badge { position: absolute; top: 0; left: 0; background: var(--if-verde); color: var(--if-branco); font-size: 0.8rem; font-weight: 900; padding: 10px 15px; border-bottom-right-radius: 20px; text-transform: uppercase; z-index: 10; }
 
-        .pulse { position: absolute; top: 15px; right: 15px; width: 20px; height: 20px; background: var(--if-vermelho); border-radius: 50%; z-index: 20; animation: pulseEffect 1.5s infinite; }
-        @keyframes pulseEffect { 0% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0.8); } 70% { box-shadow: 0 0 0 20px rgba(200, 16, 46, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); } }
-
         .info { padding: 25px; display: flex; flex-direction: column; justify-content: center; width: 65%; }
         .title { margin: 0; font-size: 1.4rem; line-height: 1.2; font-weight: 800; color: var(--if-preto); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-        .card.featured .title { font-size: 1.8rem; }
         .date { font-size: 1rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
-        @media (max-width: 800px) { 
-            header { flex-direction: column; text-align: center; gap: 15px; position: relative; }
-            .header-left { flex-direction: column; margin: 0; }
-            h1 { margin-left: 0; margin-top: 10px; font-size: 1.6rem; }
-            .header-right { border: none; padding: 0; text-align: center; position: relative; right: auto; }
-            .card { height: auto; flex-direction: column; } .card.featured { height: auto; }
-            .img-box { width: 100%; height: 220px; } .info { width: 100%; padding: 25px; } 
+        /* RODAPÉ FIXO */
+        footer {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            border-top: 4px solid var(--if-verde);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
+
+        .btn-pdf { 
+            background: var(--if-preto); color: white; border: none; 
+            padding: 12px 30px; border-radius: 30px; cursor: pointer; 
+            font-size: 0.9rem; font-weight: 800; transition: 0.3s; 
+            display: flex; align-items: center; gap: 10px;
+        }
+        .btn-pdf:hover { background: var(--if-vermelho); transform: translateY(-3px); }
+
+        @media (max-width: 800px) { header { flex-direction: column; text-align: center; } .header-right { position: static; border: none; padding: 0; margin-top: 10px; } }
     </style>
 </head>
 <body>
 
 <header>
     <div class="header-left">
-        <img src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
+        <img id="logo-img" src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
         <h1>Radar de Notícias - DICOM</h1>
     </div>
     <div class="header-right">
@@ -130,26 +124,32 @@
     </div>
 </header>
 
-<div class="progress-container"><div id="bar-fill"></div></div>
-<div id="status-console">> Painel DICOM v44.1 Ativo. Sincronizando Giro pelos 15 Campi...</div>
+<div class="main-content">
+    <div class="progress-container"><div id="bar-fill"></div></div>
+    <div id="status-console">> Pronto para Monitoramento. Iniciando Ronda...</div>
 
-<div class="filters" id="filters">
-    <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
+    <div class="filters" id="filters">
+        <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
+    </div>
+
+    <div id="news-container"></div>
 </div>
 
-<div id="news-container"></div>
+<footer>
+    <button class="btn-pdf" onclick="gerarRelatorioPDF()">
+        <span>📄</span> Gerar Relatório PDF (<span id="pdf-context">Geral</span>)
+    </button>
+</footer>
 
 <script>
     const LOGO_VERTICAL = "https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true";
     
-    // ARRAY DE UNIDADES REVISADO - CONCURSOS COMENTADO
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
-        // { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" }, // Linha comentada conforme solicitado
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/mangabeira/wp-json/wp/v2/posts/" },
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -164,7 +164,6 @@
 
     let timer = 120;
     let dataStore = [];
-    let isInitialLoad = true;
     let currentFilter = 'Todos';
     const consoleLog = document.getElementById('status-console');
 
@@ -173,10 +172,7 @@
         document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR');
         document.getElementById('date-top').innerText = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
     }
-    setInterval(updateClock, 1000);
-    updateClock();
-
-    setTimeout(() => { location.reload(); }, 3600000);
+    setInterval(updateClock, 1000); updateClock();
 
     UNIDADES.forEach(u => {
         const btn = document.createElement('button');
@@ -192,94 +188,66 @@
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Verificando publicações (Modo Profundo)...";
+        consoleLog.innerText = "> Sincronizando dados dos 15 Campi...";
         let tempBatch = [];
-
         for (const unidade of UNIDADES) {
             try {
-                const response = await fetch(`${unidade.url}?per_page=5&_embed&orderby=date&order=desc&_t=${Date.now()}`);
+                const response = await fetch(`${unidade.url}?per_page=5&_embed&_t=${Date.now()}`);
                 const posts = await response.json();
-
                 if (posts && Array.isArray(posts)) {
                     posts.forEach(post => {
-                        const pDate = new Date(post.date);
                         let img = LOGO_VERTICAL;
-                        let isFallback = true;
-
-                        if (post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0].source_url) {
+                        let imgStatus = "Fallback (Logo)";
+                        if (post._embedded && post._embedded['wp:featuredmedia']) {
                             img = post._embedded['wp:featuredmedia'][0].source_url;
-                            isFallback = false;
-                        } 
-                        else {
+                            imgStatus = "Destaque Oficial";
+                        } else {
                             const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
-                            if (imgMatch) { img = imgMatch[1]; isFallback = false; }
+                            if (imgMatch) { img = imgMatch[1]; imgStatus = "Interna (Corpo)"; }
                         }
-
                         tempBatch.push({
-                            id: post.id,
                             title: post.title.rendered.replace(/&#8211;/g, '-').replace(/&nbsp;/g, ' ').replace(/&#8220;/g, '"').replace(/&#8221;/g, '"'),
                             link: post.link,
-                            date: pDate,
+                            date: new Date(post.date),
                             campus: unidade.id,
                             img: img,
-                            isFallback: isFallback,
-                            hot: (Date.now() - pDate.getTime()) < 3600000
+                            imgStatus: imgStatus,
+                            isFallback: imgStatus === "Fallback (Logo)"
                         });
                     });
                 }
             } catch (e) { 
-                const oldOnes = dataStore.filter(n => n.campus === unidade.id);
-                tempBatch = tempBatch.concat(oldOnes);
+                tempBatch = tempBatch.concat(dataStore.filter(n => n.campus === unidade.id));
             }
         }
-
         dataStore = tempBatch;
         render(dataStore);
-        isInitialLoad = false;
-        consoleLog.innerText = `> Monitor Online. Última verificação profunda: ${new Date().toLocaleTimeString('pt-BR')}`;
+        consoleLog.innerText = `> Monitor Online. Ronda completa realizada.`;
     }
 
     function filterByCampus(id, btn) {
         currentFilter = id;
         document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        document.getElementById('pdf-context').innerText = (id === 'Todos') ? 'Geral' : id;
         render(dataStore);
     }
 
     function render(list) {
         const container = document.getElementById('news-container');
         let displayList = [];
-
         if (currentFilter === 'Todos') {
             const latestMap = new Map();
-            list.forEach(item => {
-                if (!latestMap.has(item.campus) || item.date > latestMap.get(item.campus).date) {
-                    latestMap.set(item.campus, item);
-                }
-            });
+            list.forEach(item => { if (!latestMap.has(item.campus) || item.date > latestMap.get(item.campus).date) latestMap.set(item.campus, item); });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
-
-            const sortTop = (campusName, targetIdx) => {
-                const idx = displayList.findIndex(n => n.campus === campusName);
-                if (idx > -1) {
-                    const item = displayList.splice(idx, 1)[0];
-                    displayList.splice(targetIdx, 0, item);
-                }
-            };
-            // sortTop('Concursos', 0); // Removido da ordenação de topo
-            sortTop('Reitoria', 0); 
+            const idxR = displayList.findIndex(n => n.campus === 'Reitoria');
+            if (idxR > -1) { const r = displayList.splice(idxR, 1)[0]; displayList.unshift(r); }
         } else {
             displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
         }
-
         if (displayList.length === 0) return;
-        
-        container.innerHTML = displayList.map((n, index) => {
-            // Featured: apenas o 1º da Home (Reitoria) ou o 1º na aba individual
-            const isFeatured = (index === 0);
-            return `
-            <a href="${n.link}" target="_blank" class="card ${isFeatured ? 'featured' : ''}">
-                ${n.hot ? '<div class="pulse"></div>' : ''}
+        container.innerHTML = displayList.map((n, index) => `
+            <a href="${n.link}" target="_blank" class="card ${(index === 0) ? 'featured' : ''}">
                 <div class="img-box">
                     <div class="img-src ${n.isFallback ? 'fallback' : ''}" style="background-image: url('${n.img}')"></div>
                     <div class="badge">${n.campus}</div>
@@ -288,8 +256,52 @@
                     <h2 class="title">${n.title}</h2>
                     <div class="date">${n.date.toLocaleDateString('pt-BR')} | ${n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</div>
                 </div>
-            </a>`;
-        }).join('');
+            </a>`).join('');
+    }
+
+    async function gerarRelatorioPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        const now = new Date();
+        const dataStr = now.toLocaleDateString('pt-BR');
+        
+        let reportData = [];
+        let reportTitle = "Relatório de Monitoramento - Geral";
+
+        if (currentFilter === 'Todos') {
+            reportData = dataStore.sort((a,b) => b.date - a.date);
+        } else {
+            reportData = dataStore.filter(n => n.campus === currentFilter).sort((a,b) => b.date - a.date);
+            reportTitle = `Relatório de Monitoramento - Campus ${currentFilter}`;
+        }
+
+        const img = document.getElementById('logo-img');
+        doc.addImage(img, 'PNG', 10, 10, 30, 40);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(16);
+        doc.text(reportTitle, 45, 25);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Assessoria de Comunicação (DICOM) | Gerado em: ${dataStr} às ${now.toLocaleTimeString('pt-BR')}`, 45, 32);
+        doc.line(10, 55, 200, 55);
+
+        const rows = reportData.map(n => [
+            n.date.toLocaleDateString('pt-BR') + " " + n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
+            n.campus,
+            n.title,
+            n.imgStatus
+        ]);
+
+        doc.autoTable({
+            startY: 60,
+            head: [['Data/Hora', 'Campus', 'Título da Notícia', 'Status Imagem']],
+            body: rows,
+            headStyles: { fillColor: [0, 150, 57] },
+            styles: { fontSize: 8 },
+            columnStyles: { 2: { cellWidth: 80 } }
+        });
+
+        doc.save(`${reportTitle.replace(/ /g, '_')}_${dataStr.replace(/\//g, '-')}.pdf`);
     }
 
     giroCompleto();
