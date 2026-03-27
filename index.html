@@ -26,29 +26,33 @@
             background: linear-gradient(-45deg, #ffffff, #f2f2f2, #f9fff9, #ffffff);
             background-size: 400% 400%;
             animation: meshGradient 25s ease infinite;
-            color: var(--txt-primario); 
             margin: 0; padding: 20px; min-height: 100vh;
         }
         
         header { 
             background: var(--if-branco); 
-            padding: 15px 30px; border-radius: 20px; 
+            padding: 15px 35px; border-radius: 20px; 
             box-shadow: 0 4px 25px rgba(0,0,0,0.08);
             border-bottom: 8px solid var(--if-verde);
             margin-bottom: 25px;
+            display: flex; align-items: center; justify-content: space-between;
         }
         
-        .header-main { display: flex; align-items: center; justify-content: center; gap: 25px; margin-bottom: 15px; }
-        .logo-if { height: 110px; width: auto; }
-        h1 { color: var(--if-preto); font-size: 2rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
+        .header-left { display: flex; align-items: center; gap: 25px; }
+        .logo-if { height: 100px; width: auto; }
+        h1 { color: var(--if-preto); font-size: 1.8rem; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: -1px; }
         
+        .header-right { text-align: right; border-left: 2px solid #ddd; padding-left: 25px; }
+        #clock { font-size: 2.2rem; font-weight: 900; color: var(--if-preto); line-height: 1; }
+        #date-top { font-size: 0.9rem; color: var(--if-verde); font-weight: 700; text-transform: uppercase; }
+
         .progress-container { max-width: 1200px; margin: 0 auto 15px auto; height: 10px; background: #E0E0E0; border-radius: 20px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--if-verde); transition: width 1s linear; }
         
         #status-console { 
             font-family: 'Courier New', monospace; font-size: 0.85rem; color: #10b981; 
             background: #1a1a1a; padding: 12px; border-radius: 10px; 
-            max-width: 1200px; margin: 0 auto; border: 1px solid #333;
+            max-width: 1200px; margin: 0 auto 20px auto; border: 1px solid #333;
         }
 
         .filters { max-width: 1200px; margin: 20px auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
@@ -59,7 +63,6 @@
         
         @media (min-width: 1024px) { 
             #news-container { grid-template-columns: 1fr 1fr; }
-            /* Notícia em Destaque ocupando as duas colunas */
             .featured { grid-column: 1 / span 2; }
         }
 
@@ -68,7 +71,7 @@
             text-decoration: none; color: inherit; height: 210px; border-left: 12px solid var(--if-verde);
             transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative;
         }
-        .card.featured { height: 250px; border-left-width: 20px; background: #fff; border-bottom: 2px solid #ddd; }
+        .card.featured { height: 260px; border-left-width: 20px; background: #fff; }
         .card:hover { transform: translateY(-10px); border-left-color: var(--if-vermelho); background: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
 
         .img-box { position: relative; width: 35%; min-width: 220px; height: 100%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
@@ -76,33 +79,38 @@
         .img-src.fallback { background-size: contain; background-repeat: no-repeat; width: 85%; height: 85%; }
         
         .badge { position: absolute; top: 0; left: 0; background: var(--if-verde); color: var(--if-branco); font-size: 0.8rem; font-weight: 900; padding: 10px 15px; border-bottom-right-radius: 20px; text-transform: uppercase; z-index: 10; }
-        .card.featured .badge { font-size: 1rem; padding: 12px 20px; }
 
         .pulse { position: absolute; top: 15px; right: 15px; width: 20px; height: 20px; background: var(--if-vermelho); border-radius: 50%; z-index: 20; animation: pulseEffect 1.5s infinite; }
         @keyframes pulseEffect { 0% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0.8); } 70% { box-shadow: 0 0 0 20px rgba(200, 16, 46, 0); } 100% { box-shadow: 0 0 0 0 rgba(200, 16, 46, 0); } }
 
         .info { padding: 25px; display: flex; flex-direction: column; justify-content: center; width: 65%; }
-        .title { margin: 0; font-size: 1.45rem; line-height: 1.2; font-weight: 800; color: var(--if-preto); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
-        .card.featured .title { font-size: 1.8rem; -webkit-line-clamp: 3; }
-        .date { font-size: 1.05rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
+        .title { margin: 0; font-size: 1.4rem; line-height: 1.2; font-weight: 800; color: var(--if-preto); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .card.featured .title { font-size: 1.8rem; }
+        .date { font-size: 1rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
-        @media (max-width: 750px) { 
+        @media (max-width: 800px) { 
+            header { flex-direction: column; text-align: center; gap: 15px; }
+            .header-right { border: none; padding: 0; text-align: center; }
             .card { height: auto; flex-direction: column; } .card.featured { height: auto; }
             .img-box { width: 100%; height: 220px; } .info { width: 100%; padding: 25px; } 
-            .header-main { flex-direction: column; gap: 10px; } .logo-if { height: 90px; } h1 { font-size: 1.6rem; text-align: center; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="header-main">
+    <div class="header-left">
         <img src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
         <h1>Radar de Notícias - DICOM</h1>
     </div>
-    <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Painel Institucional Prime Ativo...</div>
+    <div class="header-right">
+        <div id="date-top">-- de -- de ----</div>
+        <div id="clock">00:00:00</div>
+    </div>
 </header>
+
+<div class="progress-container"><div id="bar-fill"></div></div>
+<div id="status-console">> Painel DICOM v44.0 Ativo. Sincronizando Giro pelos 15 Campi...</div>
 
 <div class="filters" id="filters">
     <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
@@ -115,6 +123,7 @@
     
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
+        { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" },
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
@@ -137,6 +146,14 @@
     let currentFilter = 'Todos';
     const consoleLog = document.getElementById('status-console');
 
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('pt-BR');
+        document.getElementById('date-top').innerText = now.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
     setTimeout(() => { location.reload(); }, 3600000);
 
     UNIDADES.forEach(u => {
@@ -153,22 +170,36 @@
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Verificando publicações...";
+        consoleLog.innerText = "> Verificando publicações (Modo Profundo)...";
         let tempBatch = [];
 
         for (const unidade of UNIDADES) {
             try {
-                // Buscamos 5 por unidade para garantir histórico
-                const response = await fetch(`${unidade.url}?per_page=5&_t=${Date.now()}`);
+                // Adicionado o parâmetro _embed para capturar a Imagem Destacada oficial
+                const response = await fetch(`${unidade.url}?per_page=5&_embed&orderby=date&order=desc&_t=${Date.now()}`);
                 const posts = await response.json();
 
                 if (posts && Array.isArray(posts)) {
                     posts.forEach(post => {
                         const pDate = new Date(post.date);
+                        
+                        // Lógica de Captura de Imagem Melhorada
                         let img = LOGO_VERTICAL;
                         let isFallback = true;
-                        const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
-                        if (imgMatch) { img = imgMatch[1]; isFallback = false; }
+
+                        // 1. Tentar pegar a Imagem Destacada (Featured Media) via _embed
+                        if (post._embedded && post._embedded['wp:featuredmedia'] && post._embedded['wp:featuredmedia'][0].source_url) {
+                            img = post._embedded['wp:featuredmedia'][0].source_url;
+                            isFallback = false;
+                        } 
+                        // 2. Se não tiver destacada, procurar a primeira imagem dentro do texto (como era antes)
+                        else {
+                            const imgMatch = post.content.rendered.match(/src="([^"]+)"/);
+                            if (imgMatch) {
+                                img = imgMatch[1];
+                                isFallback = false;
+                            }
+                        }
 
                         tempBatch.push({
                             id: post.id,
@@ -191,7 +222,7 @@
         dataStore = tempBatch;
         render(dataStore);
         isInitialLoad = false;
-        consoleLog.innerText = `> Monitor Online. Última verificação: ${new Date().toLocaleTimeString('pt-BR')}`;
+        consoleLog.innerText = `> Monitor Online. Última verificação profunda: ${new Date().toLocaleTimeString('pt-BR')}`;
     }
 
     function filterByCampus(id, btn) {
@@ -206,7 +237,6 @@
         let displayList = [];
 
         if (currentFilter === 'Todos') {
-            // Pega a mais recente de cada campus
             const latestMap = new Map();
             list.forEach(item => {
                 if (!latestMap.has(item.campus) || item.date > latestMap.get(item.campus).date) {
@@ -215,22 +245,23 @@
             });
             displayList = Array.from(latestMap.values()).sort((a, b) => b.date - a.date);
 
-            // Tira a Reitoria do meio e coloca na frente para ser o Featured
-            const idxReitoria = displayList.findIndex(n => n.campus === 'Reitoria');
-            if (idxReitoria > -1) {
-                const reitoria = displayList.splice(idxReitoria, 1)[0];
-                displayList.unshift(reitoria);
-            }
+            const sortTop = (campusName, targetIdx) => {
+                const idx = displayList.findIndex(n => n.campus === campusName);
+                if (idx > -1) {
+                    const item = displayList.splice(idx, 1)[0];
+                    displayList.splice(targetIdx, 0, item);
+                }
+            };
+            sortTop('Concursos', 0);
+            sortTop('Reitoria', 0); 
         } else {
-            // Filtra o campus e pega as 5 últimas
             displayList = list.filter(n => n.campus === currentFilter).sort((a, b) => b.date - a.date).slice(0, 5);
         }
 
         if (displayList.length === 0) return;
         
         container.innerHTML = displayList.map((n, index) => {
-            // É destaque se for o primeiro da lista
-            const isFeatured = (index === 0);
+            const isFeatured = (currentFilter === 'Todos' ? index < 2 : index === 0);
             return `
             <a href="${n.link}" target="_blank" class="card ${isFeatured ? 'featured' : ''}">
                 ${n.hot ? '<div class="pulse"></div>' : ''}
