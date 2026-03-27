@@ -110,7 +110,7 @@
 
 <header>
     <div class="header-left">
-        <img id="logo-img" crossOrigin="anonymous" src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
+        <img id="logo-img" src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
         <h1>Radar de Notícias - DICOM</h1>
     </div>
     <div class="header-right">
@@ -121,7 +121,7 @@
 
 <div class="main-content">
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Painel DICOM Iniciado. Sincronizando...</div>
+    <div id="status-console">> Painel DICOM v46.2 Online.</div>
 
     <div class="filters" id="filters">
         <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
@@ -141,10 +141,11 @@
     
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
+        // { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" }, 
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/mangabeira/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -254,52 +255,56 @@
             </a>`).join('');
     }
 
+    // Função técnica para converter URL em Base64 para o PDF
+    function getBase64ImageFromUrl(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.setAttribute("crossOrigin", "anonymous");
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width; canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+                resolve(canvas.toDataURL("image/png"));
+            };
+            img.onerror = (error) => reject(error);
+            img.src = url;
+        });
+    }
+
     async function gerarRelatorioPDF() {
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            alert("Aguarde o carregamento do sistema de PDF.");
-            return;
-        }
+        if (!window.jspdf || !window.jspdf.jsPDF) { alert("Sistema de PDF carregando..."); return; }
+        if (dataStore.length === 0) { alert("Sincronize as notícias primeiro."); return; }
 
-        if (dataStore.length === 0) {
-            alert("Aguarde a sincronização das notícias.");
-            return;
-        }
-
+        consoleLog.innerText = "> Preparando relatório institucional...";
+        
         const doc = new jspdf.jsPDF('p', 'mm', 'a4');
         const now = new Date();
         const dataStr = now.toLocaleDateString('pt-BR');
         
-        let reportData = [];
-        let reportTitle = "Relatório de Monitoramento - Geral";
-
-        if (currentFilter === 'Todos') {
-            reportData = dataStore.sort((a,b) => b.date - a.date);
-        } else {
-            reportData = dataStore.filter(n => n.campus === currentFilter).sort((a,b) => b.date - a.date);
-            reportTitle = `Relatório de Monitoramento - Campus ${currentFilter}`;
-        }
+        let reportData = (currentFilter === 'Todos') 
+            ? dataStore.sort((a,b) => b.date - a.date) 
+            : dataStore.filter(n => n.campus === currentFilter).sort((a,b) => b.date - a.date);
+        
+        let reportTitle = (currentFilter === 'Todos') ? "Geral" : currentFilter;
 
         try {
-            const img = document.getElementById('logo-img');
-            // O try/catch previne que o PDF quebre se a logo falhar por CORS
-            doc.addImage(img, 'PNG', 10, 10, 30, 40);
+            // Buscamos a logo em Base64 "on-the-fly" para o PDF
+            const logoBase64 = await getBase64ImageFromUrl(LOGO_VERTICAL);
+            doc.addImage(logoBase64, 'PNG', 10, 10, 30, 40);
         } catch (e) {
-            console.warn("Falha ao carregar logo no PDF (CORS). Gerando sem imagem.");
+            console.warn("Logo ignorada no PDF devido a restrições de rede.");
         }
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(16);
-        doc.text(reportTitle, 45, 25);
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "normal");
-        doc.text(`Assessoria de Comunicação (DICOM) | Gerado em: ${dataStr} às ${now.toLocaleTimeString('pt-BR')}`, 45, 32);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(16);
+        doc.text(`Relatório de Monitoramento - ${reportTitle}`, 45, 25);
+        doc.setFontSize(10); doc.setFont("helvetica", "normal");
+        doc.text(`DICOM | Gerado em: ${dataStr} às ${now.toLocaleTimeString('pt-BR')}`, 45, 32);
         doc.line(10, 55, 200, 55);
 
         const rows = reportData.map(n => [
             n.date.toLocaleDateString('pt-BR') + " " + n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            n.campus,
-            n.title,
-            n.imgStatus
+            n.campus, n.title, n.imgStatus
         ]);
 
         doc.autoTable({
@@ -311,7 +316,8 @@
             columnStyles: { 2: { cellWidth: 80 } }
         });
 
-        doc.save(`${reportTitle.replace(/ /g, '_')}_${dataStr.replace(/\//g, '-')}.pdf`);
+        doc.save(`Relatorio_Radar_${reportTitle.replace(/ /g, '_')}_${dataStr.replace(/\//g, '-')}.pdf`);
+        consoleLog.innerText = "> Relatório gerado com sucesso.";
     }
 
     giroCompleto();
