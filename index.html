@@ -53,7 +53,7 @@
         #clock { font-size: 2.2rem; font-weight: 900; color: var(--if-preto); line-height: 1; }
         #date-top { font-size: 0.9rem; color: var(--if-verde); font-weight: 700; text-transform: uppercase; }
 
-        .main-content { padding: 0 20px 100px 20px; flex: 1; }
+        .main-content { padding: 0 20px 120px 20px; flex: 1; }
 
         .progress-container { max-width: 1200px; margin: 0 auto 15px auto; height: 10px; background: #E0E0E0; border-radius: 20px; overflow: hidden; }
         #bar-fill { width: 100%; height: 100%; background: var(--if-verde); transition: width 1s linear; }
@@ -73,7 +73,6 @@
 
         .card { display: flex; background: var(--card-bg); border-radius: 20px; overflow: hidden; text-decoration: none; color: inherit; height: 210px; border-left: 12px solid var(--if-verde); transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.06); position: relative; }
         .card.featured { height: 260px; border-left-width: 20px; background: #fff; }
-        .card:hover { transform: translateY(-10px); border-left-color: var(--if-vermelho); background: #fff; box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
 
         .img-box { position: relative; width: 35%; min-width: 220px; height: 100%; background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         .img-src { width: 100%; height: 100%; background-size: cover; background-position: center; }
@@ -85,18 +84,14 @@
         .title { margin: 0; font-size: 1.4rem; line-height: 1.2; font-weight: 800; color: var(--if-preto); display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
         .date { font-size: 1rem; color: var(--txt-secundario); margin-top: 15px; font-weight: 700; text-transform: uppercase; }
 
-        /* RODAPÉ FIXO */
         footer {
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             padding: 15px;
             position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
+            bottom: 0; width: 100%;
+            display: flex; justify-content: center;
             border-top: 4px solid var(--if-verde);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
             z-index: 1000;
         }
 
@@ -115,7 +110,7 @@
 
 <header>
     <div class="header-left">
-        <img id="logo-img" src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
+        <img id="logo-img" crossOrigin="anonymous" src="https://github.com/yuriluna85/radar-ifbaiano/blob/main/marca-if-baiano-vertical.png?raw=true" alt="Logo IF Baiano" class="logo-if">
         <h1>Radar de Notícias - DICOM</h1>
     </div>
     <div class="header-right">
@@ -126,7 +121,7 @@
 
 <div class="main-content">
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Pronto para Monitoramento. Iniciando Ronda...</div>
+    <div id="status-console">> Painel DICOM Iniciado. Sincronizando...</div>
 
     <div class="filters" id="filters">
         <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
@@ -149,7 +144,7 @@
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/mangabeira/wp-json/wp/v2/posts/" },
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -188,7 +183,7 @@
     }, 1000);
 
     async function giroCompleto() {
-        consoleLog.innerText = "> Sincronizando dados dos 15 Campi...";
+        consoleLog.innerText = "> Sincronizando notícias...";
         let tempBatch = [];
         for (const unidade of UNIDADES) {
             try {
@@ -222,7 +217,7 @@
         }
         dataStore = tempBatch;
         render(dataStore);
-        consoleLog.innerText = `> Monitor Online. Ronda completa realizada.`;
+        consoleLog.innerText = `> Monitor Online. Última sincronização: ${new Date().toLocaleTimeString('pt-BR')}`;
     }
 
     function filterByCampus(id, btn) {
@@ -260,8 +255,17 @@
     }
 
     async function gerarRelatorioPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert("Aguarde o carregamento do sistema de PDF.");
+            return;
+        }
+
+        if (dataStore.length === 0) {
+            alert("Aguarde a sincronização das notícias.");
+            return;
+        }
+
+        const doc = new jspdf.jsPDF('p', 'mm', 'a4');
         const now = new Date();
         const dataStr = now.toLocaleDateString('pt-BR');
         
@@ -275,8 +279,14 @@
             reportTitle = `Relatório de Monitoramento - Campus ${currentFilter}`;
         }
 
-        const img = document.getElementById('logo-img');
-        doc.addImage(img, 'PNG', 10, 10, 30, 40);
+        try {
+            const img = document.getElementById('logo-img');
+            // O try/catch previne que o PDF quebre se a logo falhar por CORS
+            doc.addImage(img, 'PNG', 10, 10, 30, 40);
+        } catch (e) {
+            console.warn("Falha ao carregar logo no PDF (CORS). Gerando sem imagem.");
+        }
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(16);
         doc.text(reportTitle, 45, 25);
