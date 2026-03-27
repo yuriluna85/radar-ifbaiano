@@ -121,7 +121,7 @@
 
 <div class="main-content">
     <div class="progress-container"><div id="bar-fill"></div></div>
-    <div id="status-console">> Painel DICOM v46.2 Online.</div>
+    <div id="status-console">> Painel DICOM v47.0 Online.</div>
 
     <div class="filters" id="filters">
         <button id="btn-todos" class="btn-filter active" onclick="filterByCampus('Todos', this)">Todos (Destaques)</button>
@@ -141,11 +141,10 @@
     
     const UNIDADES = [
         { id: "Reitoria", url: "https://www.ifbaiano.edu.br/portal/wp-json/wp/v2/posts/" },
-        // { id: "Concursos", url: "https://concurso.ifbaiano.edu.br/portal/wp-json/wp/v2/pages/" }, 
         { id: "Alagoinhas", url: "https://www.ifbaiano.edu.br/unidades/alagoinhas/wp-json/wp/v2/posts/" },
         { id: "Lapa", url: "https://www.ifbaiano.edu.br/unidades/lapa/wp-json/wp/v2/posts/" },
         { id: "Catu", url: "https://www.ifbaiano.edu.br/unidades/catu/wp-json/wp/v2/posts/" },
-        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" },
+        { id: "Mangabeira", url: "https://www.ifbaiano.edu.br/unidades/gmb/wp-json/wp/v2/posts/" }, // Corrigido para /gmb/
         { id: "Guanambi", url: "https://www.ifbaiano.edu.br/unidades/guanambi/wp-json/wp/v2/posts/" },
         { id: "Itaberaba", url: "https://www.ifbaiano.edu.br/unidades/itaberaba/wp-json/wp/v2/posts/" },
         { id: "Itapetinga", url: "https://www.ifbaiano.edu.br/unidades/itapetinga/wp-json/wp/v2/posts/" },
@@ -255,7 +254,6 @@
             </a>`).join('');
     }
 
-    // Função técnica para converter URL em Base64 para o PDF
     function getBase64ImageFromUrl(url) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -289,11 +287,10 @@
         let reportTitle = (currentFilter === 'Todos') ? "Geral" : currentFilter;
 
         try {
-            // Buscamos a logo em Base64 "on-the-fly" para o PDF
             const logoBase64 = await getBase64ImageFromUrl(LOGO_VERTICAL);
             doc.addImage(logoBase64, 'PNG', 10, 10, 30, 40);
         } catch (e) {
-            console.warn("Logo ignorada no PDF devido a restrições de rede.");
+            console.warn("Logo ignorada no PDF.");
         }
 
         doc.setFont("helvetica", "bold"); doc.setFontSize(16);
@@ -302,18 +299,21 @@
         doc.text(`DICOM | Gerado em: ${dataStr} às ${now.toLocaleTimeString('pt-BR')}`, 45, 32);
         doc.line(10, 55, 200, 55);
 
+        // MODIFICAÇÃO: Inserção da URL abaixo do Título na Tabela
         const rows = reportData.map(n => [
             n.date.toLocaleDateString('pt-BR') + " " + n.date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}),
-            n.campus, n.title, n.imgStatus
+            n.campus, 
+            n.title + "\n\nURL: " + n.link, // URL adicionada aqui com quebra de linha
+            n.imgStatus
         ]);
 
         doc.autoTable({
             startY: 60,
-            head: [['Data/Hora', 'Campus', 'Título da Notícia', 'Status Imagem']],
+            head: [['Data/Hora', 'Campus', 'Título e Link da Notícia', 'Status Imagem']],
             body: rows,
             headStyles: { fillColor: [0, 150, 57] },
-            styles: { fontSize: 8 },
-            columnStyles: { 2: { cellWidth: 80 } }
+            styles: { fontSize: 8, cellPadding: 4 }, // Padding maior para caber o link
+            columnStyles: { 2: { cellWidth: 90 } } // Largura aumentada para o texto longo
         });
 
         doc.save(`Relatorio_Radar_${reportTitle.replace(/ /g, '_')}_${dataStr.replace(/\//g, '-')}.pdf`);
